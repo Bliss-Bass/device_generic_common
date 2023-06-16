@@ -275,6 +275,9 @@ $(call inherit-product-if-exists, vendor/google/proprietary/SettingsIntelligence
 # Boringdroid
 $(call inherit-product-if-exists, vendor/boringdroid/boringdroid.mk)
 
+# vendor customization layer
+$(call inherit-product-if-exists, vendor/branding/branding.mk)
+
 # Enable MultiWindow
 PRODUCT_PROPERTY_OVERRIDES += \
     persist.sys.debug.multi_window=true
