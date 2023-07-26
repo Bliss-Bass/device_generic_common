@@ -159,3 +159,8 @@ PRODUCT_PACKAGES += iptsd_runner iptsd \
                     iptsd-dump \
                     iptsd-perf
 endif
+
+# SeedVault
+PRODUCT_PACKAGES += \
+    Seedvault
+
