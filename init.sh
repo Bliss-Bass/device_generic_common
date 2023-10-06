@@ -679,6 +679,22 @@ function set_custom_package_perms()
 		pm grant cu.axel.smartdock android.permission.BIND_DEVICE_ADMIN
 	fi
 	
+	# com.farmerbb.taskbar
+	exists_taskbar=$(pm list packages com.farmerbb.taskbar | grep -c com.farmerbb.taskbar)
+	if [ $exists_taskbar -eq 1 ]; then
+		pm grant com.farmerbb.taskbar android.permission.PACKAGE_USAGE_STATS
+		pm grant com.farmerbb.taskbar android.permission.WRITE_SECURE_SETTINGS
+		pm grant com.farmerbb.taskbar android.permission.GET_TASKS
+		pm grant com.farmerbb.taskbar android.permission.BIND_CONTROLS
+		pm grant com.farmerbb.taskbar android.permission.BIND_INPUT_METHOD
+		pm grant com.farmerbb.taskbar android.permission.BIND_QUICK_SETTINGS_TILE
+		pm grant com.farmerbb.taskbar android.permission.REBOOT
+		pm grant com.farmerbb.taskbar android.permission.BIND_ACCESSIBILITY_SERVICE
+		pm grant com.farmerbb.taskbar android.permission.MANAGE_OVERLAY_PERMISSION
+		pm grant com.farmerbb.taskbar android.permission.SYSTEM_ALERT_WINDOW
+		pm grant com.farmerbb.taskbar android.permission.USE_FULL_SCREEN_INTENT
+	fi
+
 }
 
 function do_init()
