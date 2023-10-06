@@ -25,5 +25,6 @@
     <!-- default setting for Settings.System.POWERMENU_ADVANCED -->
     <bool name="def_powermenu_advanced">false</bool>
     <!-- SeedVault Backup -->
-    <string name="def_backup_transport">com.stevesoltys.seedvault.transport.ConfigurableBackupTransport</string>
+    <bool name="def_backup_enabled">true</bool>
+    <string name="def_backup_transport" translatable="false">com.stevesoltys.seedvault.transport.ConfigurableBackupTransport</string>
 </resources>

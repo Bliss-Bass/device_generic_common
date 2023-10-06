@@ -142,5 +142,7 @@ endif
 
 # SeedVault
 PRODUCT_PACKAGES += \
-    Seedvault
+    Seedvault \
+    BasicDreams \
+    
 
