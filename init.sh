@@ -782,6 +782,7 @@ function do_bootcomplete()
 
 	POST_INST=/data/vendor/post_inst_complete
 	USER_APPS=/system/etc/user_app/*
+	PC_APPS=/system/etc/pc_app/*
 	BUILD_DATETIME=$(getprop ro.build.date.utc)
 	POST_INST_NUM=$(cat $POST_INST)
 
@@ -790,6 +791,12 @@ function do_bootcomplete()
 		do		
 			pm install $apk
 		done
+		if [ "$LOCAL_PC_MODE" -ge "1" ]; then
+			for papk in $PC_APPS
+			do		
+				pm install $papk
+			done
+		fi
 		rm "$POST_INST"
 		touch "$POST_INST"
 		echo $BUILD_DATETIME > "$POST_INST"
@@ -829,6 +836,9 @@ for c in `cat /proc/cmdline`; do
 						;;
 					DPI=*)
 						set_property ro.sf.lcd_density "$DPI"
+						;;
+					PC_MODE=*)
+						LOCAL_PC_MODE="$PC_MODE"
 						;;
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
