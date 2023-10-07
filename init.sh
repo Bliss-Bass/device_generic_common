@@ -852,6 +852,11 @@ for c in `cat /proc/cmdline`; do
 						# options: mem, disk, freeze mem, freeze disk
 						set_property sleep.state "$SUSPEND_TYPE"
 						;;
+					PWR_OFF_DBLCLK=*)
+						# set power off double click
+						# options: true,false
+						set_property poweroff.doubleclick "$PWR_OFF_DBLCLK"
+						;;
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
 			fi
