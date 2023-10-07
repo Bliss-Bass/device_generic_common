@@ -804,10 +804,6 @@ function do_bootcomplete()
 		done
 	fi
 
-	# set suspend type
-	# options: mem, disk, freeze mem, freeze disk
-	[ -n "$SUSPEND_TYPE" ] && echo $SUSPEND_TYPE > /sys/power/state	
-
 	#Auto activate XtMapper
 	#nohup env LD_LIBRARY_PATH=$(echo /data/app/*/xtr.keymapper*/lib/x86_64) \
 	#CLASSPATH=$(echo /data/app/*/xtr.keymapper*/base.apk) /system/bin/app_process \
@@ -842,6 +838,11 @@ for c in `cat /proc/cmdline`; do
 						;;
 					DPI=*)
 						set_property ro.sf.lcd_density "$DPI"
+						;;
+					SUSPEND_TYPE=*)
+						# set suspend type
+						# options: mem, disk, freeze mem, freeze disk
+						echo $SUSPEND_TYPE > /sys/power/state
 						;;
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
