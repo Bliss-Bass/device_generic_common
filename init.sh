@@ -802,6 +802,10 @@ function do_bootcomplete()
 		echo $BUILD_DATETIME > "$POST_INST"
 	fi
 
+	# set suspend type
+	# options: mem, disk, freeze mem, freeze disk
+	[ -n "$SUSPEND_TYPE" ] && echo $SUSPEND_TYPE > /sys/power/state	
+
 	#Auto activate XtMapper
 	#nohup env LD_LIBRARY_PATH=$(echo /data/app/*/xtr.keymapper*/lib/x86_64) \
 	#CLASSPATH=$(echo /data/app/*/xtr.keymapper*/base.apk) /system/bin/app_process \
