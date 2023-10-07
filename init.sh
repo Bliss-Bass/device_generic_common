@@ -791,15 +791,17 @@ function do_bootcomplete()
 		do		
 			pm install $apk
 		done
-		if [ "$LOCAL_PC_MODE" -ge "1" ]; then
-			for papk in $PC_APPS
-			do		
-				pm install $papk
-			done
-		fi
+		
 		rm "$POST_INST"
 		touch "$POST_INST"
 		echo $BUILD_DATETIME > "$POST_INST"
+	fi
+
+	if [ -n "$PC_MODE" ]; then
+		for papk in $PC_APPS
+		do		
+			pm install $papk
+		done
 	fi
 
 	# set suspend type
@@ -840,9 +842,6 @@ for c in `cat /proc/cmdline`; do
 						;;
 					DPI=*)
 						set_property ro.sf.lcd_density "$DPI"
-						;;
-					PC_MODE=*)
-						LOCAL_PC_MODE="$PC_MODE"
 						;;
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
