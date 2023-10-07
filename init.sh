@@ -850,7 +850,7 @@ for c in `cat /proc/cmdline`; do
 					SUSPEND_TYPE=*)
 						# set suspend type
 						# options: mem, disk, freeze mem, freeze disk
-						echo $SUSPEND_TYPE > /sys/power/state
+						set_property sleep.state "$SUSPEND_TYPE"
 						;;
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
