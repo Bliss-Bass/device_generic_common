@@ -674,32 +674,33 @@ function set_custom_package_perms()
 		pm grant cu.axel.smartdock android.permission.ACCESS_SUPERUSER
 		pm grant cu.axel.smartdock android.permission.PACKAGE_USAGE_STATS
 		pm grant cu.axel.smartdock android.permission.QUERY_ALL_PACKAGES
-		pm grant cu.axel.smartdock android.permission.WRITE_SECURE_SETTINGS
+		pm grant --user $current_user cu.axel.smartdock android.permission.WRITE_SECURE_SETTINGS
 		appops set cu.axel.smartdock WRITE_SECURE_SETTINGS allow
-		pm grant cu.axel.smartdock android.permission.WRITE_SETTINGS
+		pm grant --user $current_user cu.axel.smartdock android.permission.WRITE_SETTINGS
 		appops set cu.axel.smartdock WRITE_SETTINGS allow
-		pm grant cu.axel.smartdock android.permission.BIND_ACCESSIBILITY_SERVICE
+		pm grant --user $current_user cu.axel.smartdock android.permission.BIND_ACCESSIBILITY_SERVICE
 		appops set cu.axel.smartdock BIND_ACCESSIBILITY_SERVICE allow
-		pm grant cu.axel.smartdock android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
+		pm grant --user $current_user cu.axel.smartdock android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
 		appops set cu.axel.smartdock BIND_NOTIFICATION_LISTENER_SERVICE allow
-		pm grant cu.axel.smartdock android.permission.BIND_DEVICE_ADMIN
+		pm grant --user $current_user cu.axel.smartdock android.permission.BIND_DEVICE_ADMIN
 		appops set cu.axel.smartdock BIND_DEVICE_ADMIN allow
+		pm grant --user $current_user cu.axel.smartdock android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 	fi
 
 	# com.farmerbb.taskbar
 	exists_taskbar=$(pm list packages com.farmerbb.taskbar | grep -c com.farmerbb.taskbar)
 	if [ $exists_taskbar -eq 1 ]; then
 		pm grant com.farmerbb.taskbar android.permission.PACKAGE_USAGE_STATS
-		pm grant com.farmerbb.taskbar android.permission.WRITE_SECURE_SETTINGS
+		pm grant --user $current_user com.farmerbb.taskbar android.permission.WRITE_SECURE_SETTINGS
 		appops set com.farmerbb.taskbar BIND_DEVICE_ADMIN allow
 		pm grant com.farmerbb.taskbar android.permission.GET_TASKS
 		pm grant com.farmerbb.taskbar android.permission.BIND_CONTROLS
 		pm grant com.farmerbb.taskbar android.permission.BIND_INPUT_METHOD
 		pm grant com.farmerbb.taskbar android.permission.BIND_QUICK_SETTINGS_TILE
 		pm grant com.farmerbb.taskbar android.permission.REBOOT
-		pm grant com.farmerbb.taskbar android.permission.BIND_ACCESSIBILITY_SERVICE
+		pm grant --user $current_user com.farmerbb.taskbar android.permission.BIND_ACCESSIBILITY_SERVICE
 		appops set com.farmerbb.taskbar BIND_ACCESSIBILITY_SERVICE allow
-		pm grant com.farmerbb.taskbar android.permission.MANAGE_OVERLAY_PERMISSION
+		pm grant --user $current_user com.farmerbb.taskbar android.permission.MANAGE_OVERLAY_PERMISSION
 		appops set com.farmerbb.taskbar MANAGE_OVERLAY_PERMISSION allow
 		pm grant com.farmerbb.taskbar android.permission.SYSTEM_ALERT_WINDOW
 		pm grant com.farmerbb.taskbar android.permission.USE_FULL_SCREEN_INTENT
