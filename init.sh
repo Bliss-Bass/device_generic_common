@@ -708,6 +708,8 @@ function set_custom_package_perms()
 		else
 			settings put secure enabled_notification_listeners cu.axel.smartdock/cu.axel.smartdock.services.NotificationService
 		fi
+		# set device admin
+		dpm set-active-admin --user current cu.axel.smartdock/android.app.admin.DeviceAdminReceiver
 	fi
 
 	[ -n "$SET_SMARTDOCK_DEFAULT" ] && pm set-home-activity "cu.axel.smartdock/.activities.LauncherActivity"
