@@ -674,18 +674,43 @@ function set_custom_package_perms()
 		pm grant cu.axel.smartdock android.permission.ACCESS_SUPERUSER
 		pm grant cu.axel.smartdock android.permission.PACKAGE_USAGE_STATS
 		pm grant cu.axel.smartdock android.permission.QUERY_ALL_PACKAGES
+		pm grant cu.axel.smartdock android.permission.WRITE_SECURE_SETTINGS
 		pm grant --user $current_user cu.axel.smartdock android.permission.WRITE_SECURE_SETTINGS
 		appops set cu.axel.smartdock WRITE_SECURE_SETTINGS allow
+		pm grant cu.axel.smartdock android.permission.WRITE_SETTINGS
 		pm grant --user $current_user cu.axel.smartdock android.permission.WRITE_SETTINGS
 		appops set cu.axel.smartdock WRITE_SETTINGS allow
+		pm grant cu.axel.smartdock android.permission.BIND_ACCESSIBILITY_SERVICE
 		pm grant --user $current_user cu.axel.smartdock android.permission.BIND_ACCESSIBILITY_SERVICE
 		appops set cu.axel.smartdock BIND_ACCESSIBILITY_SERVICE allow
+		pm grant cu.axel.smartdock android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
 		pm grant --user $current_user cu.axel.smartdock android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
 		appops set cu.axel.smartdock BIND_NOTIFICATION_LISTENER_SERVICE allow
+		pm grant cu.axel.smartdock android.permission.BIND_DEVICE_ADMIN
 		pm grant --user $current_user cu.axel.smartdock android.permission.BIND_DEVICE_ADMIN
 		appops set cu.axel.smartdock BIND_DEVICE_ADMIN allow
+		pm grant cu.axel.smartdock android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 		pm grant --user $current_user cu.axel.smartdock android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+
+		# set overlays enabled
+		settings put secure secure_overlay_settings 1
+		# set accessibility services
+		eas=$(settings get secure enabled_accessibility_services)
+		if [ -n "$eas" ]; then
+			settings put secure enabled_accessibility_services $eas:cu.axel.smartdock/cu.axel.smartdock.services.DockService
+		else
+			settings put secure enabled_accessibility_services cu.axel.smartdock/cu.axel.smartdock.services.DockService
+		fi
+		# set notification listeners
+		enl=$(settings get secure enabled_notification_listeners)
+		if [ -n "$enl" ]; then
+			settings put secure enabled_notification_listeners $enl:cu.axel.smartdock/cu.axel.smartdock.services.NotificationService
+		else
+			settings put secure enabled_notification_listeners cu.axel.smartdock/cu.axel.smartdock.services.NotificationService
+		fi
 	fi
+
+	[ -n "$SET_SMARTDOCK_DEFAULT" ] && pm set-home-activity "cu.axel.smartdock/.activities.LauncherActivity"
 
 	# com.farmerbb.taskbar
 	exists_taskbar=$(pm list packages com.farmerbb.taskbar | grep -c com.farmerbb.taskbar)
@@ -704,6 +729,9 @@ function set_custom_package_perms()
 		appops set com.farmerbb.taskbar MANAGE_OVERLAY_PERMISSION allow
 		pm grant com.farmerbb.taskbar android.permission.SYSTEM_ALERT_WINDOW
 		pm grant com.farmerbb.taskbar android.permission.USE_FULL_SCREEN_INTENT
+
+		# set overlays enabled
+		settings put secure secure_overlay_settings 1
 	fi
 
 	# MicroG: com.google.android.gms
