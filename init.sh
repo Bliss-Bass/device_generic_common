@@ -694,9 +694,13 @@ function set_custom_package_perms()
 
 		# set overlays enabled
 		settings put secure secure_overlay_settings 1
-		# set accessibility services
-		eas=$(settings get secure enabled_accessibility_services)
-		if [ -n "$eas" ]; then
+
+		# Only if PC_MODE is 1
+		if [ $PC_MODE -eq 1 ]; then
+			
+			# set accessibility services
+			eas=$(settings get secure enabled_accessibility_services)
+			if [ -n "$eas" ]; then
 			settings put secure enabled_accessibility_services $eas:cu.axel.smartdock/cu.axel.smartdock.services.DockService
 		else
 			settings put secure enabled_accessibility_services cu.axel.smartdock/cu.axel.smartdock.services.DockService
@@ -707,9 +711,16 @@ function set_custom_package_perms()
 			settings put secure enabled_notification_listeners $enl:cu.axel.smartdock/cu.axel.smartdock.services.NotificationService
 		else
 			settings put secure enabled_notification_listeners cu.axel.smartdock/cu.axel.smartdock.services.NotificationService
+			fi
+			# set device admin
+			dpm set-active-admin --user current cu.axel.smartdock/android.app.admin.DeviceAdminReceiver
+
+			# Disable Launcher3 Taskbar
+			setprop persist.debug.launcher3.ENABLE_TASKBAR false
+			setprop persist.debug.launcher3.ENABLE_TASKBAR_EDU false
+			setprop persist.debug.launcher3.ENABLE_TRANSIENT_TASKBAR false
+
 		fi
-		# set device admin
-		dpm set-active-admin --user current cu.axel.smartdock/android.app.admin.DeviceAdminReceiver
 	fi
 
 	[ -n "$SET_SMARTDOCK_DEFAULT" ] && pm set-home-activity "cu.axel.smartdock/.activities.LauncherActivity"
