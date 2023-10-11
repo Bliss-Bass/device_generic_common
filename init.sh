@@ -701,16 +701,16 @@ function set_custom_package_perms()
 			# set accessibility services
 			eas=$(settings get secure enabled_accessibility_services)
 			if [ -n "$eas" ]; then
-			settings put secure enabled_accessibility_services $eas:cu.axel.smartdock/cu.axel.smartdock.services.DockService
-		else
-			settings put secure enabled_accessibility_services cu.axel.smartdock/cu.axel.smartdock.services.DockService
-		fi
-		# set notification listeners
-		enl=$(settings get secure enabled_notification_listeners)
-		if [ -n "$enl" ]; then
-			settings put secure enabled_notification_listeners $enl:cu.axel.smartdock/cu.axel.smartdock.services.NotificationService
-		else
-			settings put secure enabled_notification_listeners cu.axel.smartdock/cu.axel.smartdock.services.NotificationService
+				settings put secure enabled_accessibility_services $eas:cu.axel.smartdock/cu.axel.smartdock.services.DockService
+			else
+				settings put secure enabled_accessibility_services cu.axel.smartdock/cu.axel.smartdock.services.DockService
+			fi
+			# set notification listeners
+			enl=$(settings get secure enabled_notification_listeners)
+			if [ -n "$enl" ]; then
+				settings put secure enabled_notification_listeners $enl:cu.axel.smartdock/cu.axel.smartdock.services.NotificationService
+			else
+				settings put secure enabled_notification_listeners cu.axel.smartdock/cu.axel.smartdock.services.NotificationService
 			fi
 			# set device admin
 			dpm set-active-admin --user current cu.axel.smartdock/android.app.admin.DeviceAdminReceiver
@@ -926,6 +926,13 @@ for c in `cat /proc/cmdline`; do
 						# set power off double click
 						# options: true,false
 						set_property poweroff.doubleclick "$PWR_OFF_DBLCLK"
+						;;
+					ENABLE_QUICKSTEP_TASKBAR=*)
+						# set quickstep taskbar
+						# options: true,false
+						set_property persist.debug.launcher3.ENABLE_TASKBAR "$ENABLE_QUICKSTEP_TASKBAR"
+						set_property persist.debug.launcher3.ENABLE_TASKBAR_EDU "$ENABLE_QUICKSTEP_TASKBAR"
+						set_property persist.debug.launcher3.ENABLE_TRANSIENT_TASKBAR "$ENABLE_QUICKSTEP_TASKBAR"
 						;;
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
