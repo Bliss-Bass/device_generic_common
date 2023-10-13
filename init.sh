@@ -716,9 +716,9 @@ function set_custom_package_perms()
 			dpm set-active-admin --user current cu.axel.smartdock/android.app.admin.DeviceAdminReceiver
 
 			# Disable Launcher3 Taskbar
-			setprop persist.debug.launcher3.ENABLE_TASKBAR false
-			setprop persist.debug.launcher3.ENABLE_TASKBAR_EDU false
-			setprop persist.debug.launcher3.ENABLE_TRANSIENT_TASKBAR false
+			set_property persist.debug.launcher3.ENABLE_TASKBAR false
+			set_property persist.debug.launcher3.ENABLE_TASKBAR_EDU false
+			set_property persist.debug.launcher3.ENABLE_TRANSIENT_TASKBAR false
 
 		fi
 	fi
