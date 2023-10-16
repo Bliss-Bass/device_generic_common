@@ -698,22 +698,48 @@ function set_custom_package_perms()
 		# Only if PC_MODE is 1
 		if [ $PC_MODE -eq 1 ]; then
 			
-			# set accessibility services
-			eas=$(settings get secure enabled_accessibility_services)
-			if [ -n "$eas" ]; then
-				settings put secure enabled_accessibility_services $eas:cu.axel.smartdock/cu.axel.smartdock.services.DockService
-			else
-				settings put secure enabled_accessibility_services cu.axel.smartdock/cu.axel.smartdock.services.DockService
+			if [ ! -f /data/misc/sdconfig/accessibility ]; then
+				# set accessibility services
+				eas=$(settings get secure enabled_accessibility_services)
+				if [ -n "$eas" ]; then
+					settings put secure enabled_accessibility_services $eas:cu.axel.smartdock/cu.axel.smartdock.services.DockService
+				else
+					settings put secure enabled_accessibility_services cu.axel.smartdock/cu.axel.smartdock.services.DockService
+				fi
+				mkdir -p /data/misc/sdconfig
+				touch /data/misc/sdconfig/accessibility
+				chown 1000.1000 /data/misc/sdconfig /data/misc/sdconfig/*
+				chmod 775 /data/misc/sdconfig
+				chmod 664 /data/misc/sdconfig/accessibility
 			fi
-			# set notification listeners
-			enl=$(settings get secure enabled_notification_listeners)
-			if [ -n "$enl" ]; then
-				settings put secure enabled_notification_listeners $enl:cu.axel.smartdock/cu.axel.smartdock.services.NotificationService
-			else
-				settings put secure enabled_notification_listeners cu.axel.smartdock/cu.axel.smartdock.services.NotificationService
+			if [ ! -f /data/misc/sdconfig/notification ]; then
+				# set notification listeners
+				enl=$(settings get secure enabled_notification_listeners)
+				if [ -n "$enl" ]; then
+					settings put secure enabled_notification_listeners $enl:cu.axel.smartdock/cu.axel.smartdock.services.NotificationService
+					
+				else
+					settings put secure enabled_notification_listeners cu.axel.smartdock/cu.axel.smartdock.services.NotificationService
+				fi
+				mkdir -p /data/misc/sdconfig
+				touch /data/misc/sdconfig/notification
+				chown 1000.1000 /data/misc/sdconfig /data/misc/sdconfig/*
+				chmod 775 /data/misc/sdconfig
+				chmod 664 /data/misc/sdconfig/notification
 			fi
-			# set device admin
-			dpm set-active-admin --user current cu.axel.smartdock/android.app.admin.DeviceAdminReceiver
+			if [ ! -f /data/misc/sdconfig/admin ]; then
+				# set device admin
+				dpm set-active-admin --user current cu.axel.smartdock/android.app.admin.DeviceAdminReceiver
+				mkdir -p /data/misc/sdconfig
+				touch /data/misc/sdconfig/admin
+				chown 1000.1000 /data/misc/sdconfig /data/misc/sdconfig/*
+				chmod 775 /data/misc/sdconfig
+				chmod 664 /data/misc/sdconfig/admin
+			fi
+
+			if [ $(aettings get global development_settings_enabled) == 0 ]; then
+		    	settings put global development_settings_enabled 1
+			fi
 
 			# Disable Launcher3 Taskbar
 			set_property persist.debug.launcher3.ENABLE_TASKBAR false
