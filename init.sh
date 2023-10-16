@@ -1119,6 +1119,28 @@ for c in `cat /proc/cmdline`; do
 						# Off: 0  On: 1
 						dumpsys battery set ac "$SET_FAKE_CHARGING_STATUS"
 						;;
+					SET_USB_BUS_PORTS=*)
+						# Set USB bus ports
+						# Example: SET_USB_BUS_PORTS=001/001,001/002,001/003,001/004
+						genports="${SET_USB_BUS_PORTS#*=}"
+						genports="${genports//,/ }"
+						# loop through each option
+						for port in $genports; do
+							chown system:system /dev/bus/usb/$port
+							chmod 666 /dev/bus/usb/$port
+						done
+						;;
+					SET_TTY_PORT_PERMS=*)
+						# Sets permissions for tty ports 
+						# Example: SET_TTY_PORT_PERMS=ttyS0,ttyS1,ttyS2
+						gentty="${SET_TTY_PORT_PERMS#*=}"
+						gentty="${gentty//,/ }"
+						# loop through each option
+						for tport in $gentty; do
+							# chown system:system /dev/$tport
+							chmod 666 /dev/$tport
+						done
+						;;
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
 			fi
