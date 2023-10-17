@@ -147,6 +147,9 @@ PRODUCT_PACKAGES += \
 	pc.xml \
 	hpe.xml \
 	device.prop
+    
+# Some additional CLI programs
+PRODUCT_PACKAGES += tput dialog alsa-info.sh tree lspci dmidecode
 
 ifeq ($(USE_BLISS_SETUPWIZARD), true)
 
