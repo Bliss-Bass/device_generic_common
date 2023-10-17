@@ -1021,6 +1021,9 @@ for c in `cat /proc/cmdline`; do
 						set_property persist.debug.launcher3.ENABLE_TASKBAR_EDU "$ENABLE_QUICKSTEP_TASKBAR"
 						set_property persist.debug.launcher3.ENABLE_TRANSIENT_TASKBAR "$ENABLE_QUICKSTEP_TASKBAR"
 						;;
+					SET_SF_ROTATION=*)
+						set_property ro.sf.hwrotation "$SET_SF_ROTATION"
+						;;
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
 			fi
