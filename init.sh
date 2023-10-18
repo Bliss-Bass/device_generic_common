@@ -1141,6 +1141,11 @@ for c in `cat /proc/cmdline`; do
 							chmod 666 /dev/$tport
 						done
 						;;
+					FORCE_DISABLE_NAVIGATION=*)
+						# Force disable navigation bar
+						# options: true, false
+						set_property persist.bliss.disable_navigation_bar "$FORCE_DISABLE_NAVIGATION"
+						;;
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
 			fi
