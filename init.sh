@@ -1177,6 +1177,11 @@ for c in `cat /proc/cmdline`; do
 						# options: true, false
 						set_property persist.bliss.disable_taskbar "$FORCE_DISABLE_NAV_TASKBAR"
 						;;
+					FORCE_DISABLE_STATUSBAR=*)
+						# Force disable statusbar
+						# options: true, false
+						set_property persist.bliss.disable_statusbar "$FORCE_DISABLE_NAV_TASKBAR"
+						;;
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
 			fi
