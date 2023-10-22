@@ -930,6 +930,26 @@ function set_max_logd()
 	
 }
 
+function set_custom_ota()
+{
+	for c in `cat /proc/cmdline`; do
+		case $c in
+			*=*)
+				eval $c
+				if [ -z "$1" ]; then
+					case $c in
+						# Set TimeZone
+						SET_CUSTOM_OTA_URI=*)
+							setprop bliss.updater.uri "$SET_CUSTOM_OTA_URI"
+							;;
+					esac
+				fi
+				;;
+		esac
+	done
+	
+}
+
 function do_init()
 {
 	init_misc
@@ -937,6 +957,7 @@ function do_init()
 	set_custom_ota
 	set_usb_mode
 	set_custom_timezone
+	set_custom_ota
 	set_max_logd
 	init_hal_audio
 	init_hal_bluetooth
