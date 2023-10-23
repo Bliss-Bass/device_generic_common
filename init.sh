@@ -969,7 +969,7 @@ function set_package_opts()
                     case $c in
                         HIDE_APPS=*)
                             hapackages="${HIDE_APPS#*=}"
-							hapackage_array=`echo $hapackages | sed 's/,/ /g' | xargs`
+							hapackage_array=($(echo $hapackages | sed 's/,/ /g' | xargs))
                             for hapackage in "${hapackage_array[@]}"; do
 								if [ ! -f /data/misc/bbconfig/$hapackage ]; then
 									echo "HIDE_APPS: $hapackage"
@@ -982,7 +982,7 @@ function set_package_opts()
                             ;;
                         RESTORE_APPS=*)
                             rapackages="${RESTORE_APPS#*=}"
-							rapackage_array=`echo $rapackages | sed 's/,/ /g' | xargs`
+							rapackage_array=($(echo $rapackages | sed 's/,/ /g' | xargs))
                             for rapackage in "${rapackage_array[@]}"; do
 								if [ -f /data/misc/bbconfig/$rapackage ]; then
 									echo "RESTORE_APPS: $rapackage"
