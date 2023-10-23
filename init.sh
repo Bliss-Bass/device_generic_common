@@ -968,12 +968,8 @@ function set_package_opts()
                 if [ -z "$1" ]; then
                     case $c in
                         HIDE_APPS=*)
-                            hapackages="${HIDE_APPS#*=}" 
-							if [[ $hapackages == *['!',]* ]]; then 
-								hapackage_array=$hapackages
-							else
-								hapackage_array=($(echo "$hapackages" | tr ',' '\n'))
-							fi
+                            hapackages="${HIDE_APPS#*=}"
+							hapackage_array=`echo $hapackages | sed 's/,/ /g' | xargs`
                             for hapackage in "${hapackage_array[@]}"; do
 								if [ ! -f /data/misc/bbconfig/$hapackage ]; then
 									echo "HIDE_APPS: $hapackage"
@@ -985,18 +981,14 @@ function set_package_opts()
                             done
                             ;;
                         RESTORE_APPS=*)
-                            uapackages="${RESTORE_APPS#*=}"
-							if [[ $hapackages == *['!',]* ]]; then 
-								uapackage_array=$uapackages
-							else
-								uapackage_array=($(echo "$uapackages" | tr ',' '\n'))
-							fi
-                            for uapackage in "${uapackage_array[@]}"; do
-								if [ -f /data/misc/bbconfig/$uapackage ]; then
-									echo "RESTORE_APPS: $uapackage"
-									pm unhide $uapackage
+                            rapackages="${RESTORE_APPS#*=}"
+							rapackage_array=`echo $rapackages | sed 's/,/ /g' | xargs`
+                            for rapackage in "${rapackage_array[@]}"; do
+								if [ -f /data/misc/bbconfig/$rapackage ]; then
+									echo "RESTORE_APPS: $rapackage"
+									pm unhide $rapackage
 									sleep 1
-									rm -rf /data/misc/bbconfig/$uapackage
+									rm -rf /data/misc/bbconfig/$rapackage
 								fi
                             done
                             ;;
