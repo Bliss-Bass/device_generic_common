@@ -745,7 +745,7 @@ function set_custom_package_perms()
 				chmod 664 /data/misc/sdconfig/admin
 			fi
 
-			if [ $(aettings get global development_settings_enabled) == 0 ]; then
+			if [ $(settings get global development_settings_enabled) == 0 ]; then
 		    	settings put global development_settings_enabled 1
 			fi
 
