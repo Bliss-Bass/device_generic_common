@@ -754,10 +754,10 @@ function set_custom_package_perms()
 			set_property persist.debug.launcher3.ENABLE_TASKBAR_EDU false
 			set_property persist.debug.launcher3.ENABLE_TRANSIENT_TASKBAR false
 
+			[ -n "$SET_SMARTDOCK_DEFAULT" ] && pm set-home-activity "cu.axel.smartdock/.activities.LauncherActivity" || pm set-home-activity "com.android.launcher3/.LauncherProvider"
+
 		fi
 	fi
-
-	[ -n "$SET_SMARTDOCK_DEFAULT" ] && pm set-home-activity "cu.axel.smartdock/.activities.LauncherActivity" || pm set-home-activity "com.android.launcher3/.LauncherProvider"
 
 	# com.farmerbb.taskbar
 	exists_taskbar=$(pm list packages com.farmerbb.taskbar | grep -c com.farmerbb.taskbar)
