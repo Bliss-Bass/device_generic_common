@@ -163,4 +163,7 @@ PRODUCT_PACKAGES += \
     Seedvault \
     BasicDreams \
     
-
+# Include dhcptool
+PRODUCT_PACKAGES += \
+    libnetutils \
+    dhcpdbg
