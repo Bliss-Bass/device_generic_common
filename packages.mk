@@ -171,3 +171,11 @@ PRODUCT_PACKAGES += \
 # Bliss Ethernet Manager
 PRODUCT_PACKAGES += \
     BlissEthernetManagerApp
+
+# Bliss Kiosk App
+ifeq ($(USE_BLISS_KIOSK_LAUNCHER), true)
+
+PRODUCT_PACKAGES += \
+    BlissKioskLauncher
+
+endif
