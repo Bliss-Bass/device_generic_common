@@ -167,3 +167,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     libnetutils \
     dhcpdbg
+
+# Bliss Ethernet Manager
+PRODUCT_PACKAGES += \
+    BlissEthernetManagerApp
