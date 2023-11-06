@@ -64,6 +64,10 @@ PRODUCT_PRODUCT_PROPERTIES += \
     ro.lmk.use_psi=true \
     ro.lmk.use_new_strategy=false
 
+# Disable support of one-handed mode
+PRODUCT_PRODUCT_PROPERTIES += \
+    ro.support_one_handed_mode=false
+
 # Go mode tweaks
 ifeq ($(IS_GO_VERSION),true)
 PRODUCT_PRODUCT_PROPERTIES += \
