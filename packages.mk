@@ -169,8 +169,11 @@ PRODUCT_PACKAGES += \
     dhcpdbg
 
 # Bliss Ethernet Manager
+ifeq ($(USE_BLISS_ETHERNET_MANAGER), true)
 PRODUCT_PACKAGES += \
     BlissEthernetManagerApp
+
+endif
 
 # Bliss Kiosk App
 ifeq ($(USE_BLISS_KIOSK_LAUNCHER), true)
