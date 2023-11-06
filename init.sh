@@ -1175,9 +1175,9 @@ for c in `cat /proc/cmdline`; do
 						# Set USB bus ports
 						# Example: SET_USB_BUS_PORTS=001/001,001/002,001/003,001/004
 						genports="${SET_USB_BUS_PORTS#*=}"
-						genports="${genports//,/ }"
+						genports_array=($(echo $gentty | sed 's/,/ /g' | xargs))
 						# loop through each option
-						for port in $genports; do
+						for port in "${genports_array[@]}"; do
 							chown system:system /dev/bus/usb/$port
 							chmod 666 /dev/bus/usb/$port
 						done
@@ -1186,9 +1186,9 @@ for c in `cat /proc/cmdline`; do
 						# Sets permissions for tty ports 
 						# Example: SET_TTY_PORT_PERMS=ttyS0,ttyS1,ttyS2
 						gentty="${SET_TTY_PORT_PERMS#*=}"
-						gentty="${gentty//,/ }"
+						gentty_array=($(echo $gentty | sed 's/,/ /g' | xargs))
 						# loop through each option
-						for tport in $gentty; do
+						for tport in "${gentty_array[@]}"; do
 							# chown system:system /dev/$tport
 							chmod 666 /dev/$tport
 						done
