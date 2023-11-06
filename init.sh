@@ -918,7 +918,8 @@ function set_custom_ota()
 				eval $c
 				if [ -z "$1" ]; then
 					case $c in
-						# Set TimeZone
+						# Set OTA URI
+						# SET_CUSTOM_OTA_URI=https://192.168.1.1/updates/update.json
 						SET_CUSTOM_OTA_URI=*)
 							setprop bliss.updater.uri "$SET_CUSTOM_OTA_URI"
 							;;
