@@ -683,6 +683,9 @@ function set_custom_package_perms()
 		# set overlays enabled
 		settings put secure secure_overlay_settings 1
 
+		# allow displaying over other apps if in Go mode
+		settings put system alert_window_bypass_low_ram 1
+
 		# Only if PC_MODE is 1
 		if [ $PC_MODE -eq 1 ]; then
 			
