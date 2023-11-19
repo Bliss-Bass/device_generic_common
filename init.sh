@@ -641,6 +641,13 @@ function set_custom_package_perms()
 
 	current_user=$(dumpsys activity | grep mCurrentUserId | cut -d: -f2)
 
+	# KioskLauncher
+	exists_kiosk=$(pm list packages org.blissos.kiosklauncher | grep -c org.blissos.kiosklauncher)
+	if [ $exists_kiosk -eq 1 ]; then
+		pm set-home-activity "org.blissos.kiosklauncher/.ui.MainActivity"
+		am start -a android.intent.action.MAIN -c android.intent.category.HOME
+	fi
+		
 	# SmartDock
 	exists_smartdock=$(pm list packages cu.axel.smartdock | grep -c cu.axel.smartdock)
 	if [ $exists_smartdock -eq 1 ]; then
