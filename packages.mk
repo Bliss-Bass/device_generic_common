@@ -182,3 +182,12 @@ PRODUCT_PACKAGES += \
     BlissKioskLauncher
 
 endif
+
+# Bliss Restricted Launcher
+ifeq ($(USE_BLISS_RESTRICTED_LAUNCHER), true)
+
+PRODUCT_PACKAGES += \
+    BlissRestrictedLauncher
+
+endif
+

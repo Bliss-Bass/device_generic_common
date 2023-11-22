@@ -647,6 +647,23 @@ function set_custom_package_perms()
 		pm set-home-activity "org.blissos.kiosklauncher/.ui.MainActivity"
 		am start -a android.intent.action.MAIN -c android.intent.category.HOME
 	fi
+
+	# BlissRestrictedLauncher
+	exists_restlauncher=$(pm list packages com.bliss.restrictedlauncher | grep -c com.bliss.restrictedlauncher)
+	if [ $exists_restlauncher -eq 1 ]; then
+		if [ ! -f /data/misc/rlconfig/admin ]; then
+			# set device admin
+			# dpm set-active-admin --user current com.bliss.restrictedlauncher/.DeviceAdmin
+			dpm set-device-owner com.bliss.restrictedlauncher/.DeviceAdmin
+			mkdir -p /data/misc/rlconfig
+			touch /data/misc/rlconfig/admin
+			chown 1000.1000 /data/misc/rlconfig /data/misc/sdconfig/*
+			chmod 775 /data/misc/rlconfig
+			chmod 664 /data/misc/rlconfig/admin
+		fi
+		pm set-home-activity "com.bliss.restrictedlauncher/.activities.LauncherActivity"
+		am start -a android.intent.action.MAIN -c android.intent.category.HOME
+	fi
 		
 	# SmartDock
 	exists_smartdock=$(pm list packages cu.axel.smartdock | grep -c cu.axel.smartdock)
