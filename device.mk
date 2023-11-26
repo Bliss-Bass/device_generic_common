@@ -306,7 +306,7 @@ $(call inherit-product-if-exists, vendor/google/proprietary/SettingsIntelligence
 $(call inherit-product-if-exists, vendor/boringdroid/boringdroid.mk)
 
 # vendor customization layer
-$(call inherit-product-if-exists, vendor/branding/branding.mk)
+$(call inherit-product-if-exists, vendor/bass/branding.mk)
 
 # Enable MultiWindow
 PRODUCT_PROPERTY_OVERRIDES += \
