@@ -175,6 +175,13 @@ PRODUCT_PACKAGES += \
 
 endif
 
+# Bliss Power Manager
+ifeq ($(USE_BLISS_POWER_MANAGER), true)
+PRODUCT_PACKAGES += \
+    BlissPowerManagerApp
+
+endif
+
 # Bliss Kiosk App
 ifeq ($(USE_BLISS_KIOSK_LAUNCHER), true)
 
