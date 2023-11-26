@@ -653,15 +653,44 @@ function set_custom_package_perms()
 	if [ $exists_restlauncher -eq 1 ]; then
 		if [ ! -f /data/misc/rlconfig/admin ]; then
 			# set device admin
-			# dpm set-active-admin --user current com.bliss.restrictedlauncher/.DeviceAdmin
 			dpm set-device-owner com.bliss.restrictedlauncher/.DeviceAdmin
 			mkdir -p /data/misc/rlconfig
 			touch /data/misc/rlconfig/admin
-			chown 1000.1000 /data/misc/rlconfig /data/misc/sdconfig/*
+			chown 1000.1000 /data/misc/rlconfig /data/misc/rlconfig/*
 			chmod 775 /data/misc/rlconfig
 			chmod 664 /data/misc/rlconfig/admin
 		fi
 		pm set-home-activity "com.bliss.restrictedlauncher/.activities.LauncherActivity"
+		am start -a android.intent.action.MAIN -c android.intent.category.HOME
+	fi
+
+	# Game-Mode Launcher
+	exists_molla=$(pm list packages com.sinu.molla | grep -c com.sinu.molla)
+	if [ $exists_molla -eq 1 ]; then
+		pm set-home-activity "com.sinu.molla/.MainActivity"
+		am start -a android.intent.action.MAIN -c android.intent.category.HOME
+	fi
+
+	# Game-Mode Launcher
+	exists_cross=$(pm list packages id.psw.vshlauncher | grep -c id.psw.vshlauncher)
+	if [ $exists_cross -eq 1 ]; then
+		pm set-home-activity "id.psw.vshlauncher/.activities.Xmb"
+		am start -a android.intent.action.MAIN -c android.intent.category.HOME
+	fi
+
+	# Garlic-Launcher
+	exists_garliclauncher=$(pm list packages com.sagiadinos.garlic.launcher | grep -c com.sagiadinos.garlic.launcher)
+	if [ $exists_garliclauncher -eq 1 ]; then
+		if [ ! -f /data/misc/glauncherconfig/admin ]; then
+			# set device admin
+			dpm set-device-owner com.sagiadinos.garlic.launcher/.receiver.AdminReceiver
+			mkdir -p /data/misc/glauncherconfig
+			touch /data/misc/glauncherconfig/admin
+			chown 1000.1000 /data/misc/glauncherconfig /data/misc/glauncherconfig/*
+			chmod 775 /data/misc/glauncherconfig
+			chmod 664 /data/misc/glauncherconfig/admin
+		fi
+		pm set-home-activity "com.sagiadinos.garlic.launcher/.MainActivity"
 		am start -a android.intent.action.MAIN -c android.intent.category.HOME
 	fi
 		
