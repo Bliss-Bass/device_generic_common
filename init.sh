@@ -660,6 +660,7 @@ function set_custom_package_perms()
 			chmod 775 /data/misc/rlconfig
 			chmod 664 /data/misc/rlconfig/admin
 		fi
+		pm grant com.bliss.restrictedlauncher android.permission.SYSTEM_ALERT_WINDOW
 		pm set-home-activity "com.bliss.restrictedlauncher/.activities.LauncherActivity"
 		am start -a android.intent.action.MAIN -c android.intent.category.HOME
 	fi
