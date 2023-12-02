@@ -1435,6 +1435,10 @@ for c in `cat /proc/cmdline`; do
 						# options: 0, 1
 						set_property persist.wm.debug.hide_navbar_window "$FORCE_HIDE_NAVBAR_WINDOW"
 						;;
+					FORCE_HW_TIMEOUT_MULTIPLIER=*)
+						# Force hw timeout multiplier, # X 5s
+						# options: (integer)
+						set_property ro.hw_timeout_multiplier "$FORCE_HW_TIMEOUT_MULTIPLIER"
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
 			fi
