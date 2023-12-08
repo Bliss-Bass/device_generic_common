@@ -668,6 +668,8 @@ function set_custom_package_perms()
 			chmod 775 /data/misc/rlconfig
 			chmod 664 /data/misc/rlconfig/admin
 		fi
+		set_property persist.wm.debug.hide_navbar_window 1
+		
 		pm grant com.bliss.restrictedlauncher android.permission.SYSTEM_ALERT_WINDOW
 		pm set-home-activity "com.bliss.restrictedlauncher/.activities.LauncherActivity"
 		am start -a android.intent.action.MAIN -c android.intent.category.HOME
@@ -795,12 +797,10 @@ function set_custom_package_perms()
 			fi
 
 			# Disable Launcher3 Taskbar
-			set_property persist.debug.launcher3.ENABLE_TASKBAR false
-			set_property persist.debug.launcher3.ENABLE_TASKBAR_EDU false
-			set_property persist.debug.launcher3.ENABLE_TRANSIENT_TASKBAR false
+			set_property persist.wm.debug.hide_navbar_window 1
 
 			[ -n "$SET_SMARTDOCK_DEFAULT" ] && pm set-home-activity "cu.axel.smartdock/.activities.LauncherActivity" || pm set-home-activity "com.android.launcher3/.LauncherProvider"
-
+			
 		fi
 	fi
 
