@@ -1342,6 +1342,11 @@ for c in `cat /proc/cmdline`; do
 						# options: true, false
 						set_property persist.bliss.disable_recents "$FORCE_DISABLE_NAV_TASKBAR"
 						;;
+					FORCE_HIDE_NAVBAR_WINDOW=*)
+						# Force hide navigation bar window
+						# options: 0, 1
+						set_property persist.wm.debug.hide_navbar_window "$FORCE_HIDE_NAVBAR_WINDOW"
+						;;
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
 			fi
