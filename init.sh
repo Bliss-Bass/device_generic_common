@@ -753,7 +753,7 @@ function set_custom_package_perms()
 		# Only if PC_MODE is 1
 		if [ $PC_MODE -eq 1 ]; then
 			
-			if [ ! -f /data/misc/sdconfig/accessibility ]; then
+			if [ ! -f /data/misc/sdconfig/accessibility ] && ! pm list packages | grep -q "com.blissos.setupwizard"; then
 				# set accessibility services
 				eas=$(settings get secure enabled_accessibility_services)
 				if [ -n "$eas" ]; then
