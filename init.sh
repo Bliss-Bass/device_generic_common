@@ -1050,11 +1050,7 @@ function set_custom_settings()
 {
 	# Set generic device settings
 	# Example: SET_SCREEN_OFF_TIMEOUT=1800000 # 30 minutes 
-	# 		   SET_SCREEN_OFF_TIMEOUT=900000 # 15 minutes
-	# 		   SET_SCREEN_OFF_TIMEOUT=300000 # 5 minutes
-	#		   SET_SLEEP_TIMEOUT=604800000 # 1 week
 	# 		   SET_SLEEP_TIMEOUT=86400000 # 1 day
-	# 		   SET_SLEEP_TIMEOUT=3600000 # 1 hour
 	#
 	for c in `cat /proc/cmdline`; do
         case $c in
@@ -1263,13 +1259,6 @@ for c in `cat /proc/cmdline`; do
 						# set power off double click
 						# options: true,false
 						set_property poweroff.doubleclick "$PWR_OFF_DBLCLK"
-						;;
-					ENABLE_QUICKSTEP_TASKBAR=*)
-						# set quickstep taskbar
-						# options: true,false
-						set_property persist.debug.launcher3.ENABLE_TASKBAR "$ENABLE_QUICKSTEP_TASKBAR"
-						set_property persist.debug.launcher3.ENABLE_TASKBAR_EDU "$ENABLE_QUICKSTEP_TASKBAR"
-						set_property persist.debug.launcher3.ENABLE_TRANSIENT_TASKBAR "$ENABLE_QUICKSTEP_TASKBAR"
 						;;
 					SET_SF_ROTATION=*)
 						set_property ro.sf.hwrotation "$SET_SF_ROTATION"
