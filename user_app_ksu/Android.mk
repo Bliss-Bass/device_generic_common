@@ -9,7 +9,7 @@
 #
 
 # Minimal added packages option
-ifneq ($(BLISS_REMOVE_USER_TOOLS), true)
+ifneq ($(BLISS_REMOVE_KSU), true)
 
 LOCAL_PATH := $(call my-dir)
 LOCAL_APPS := $(subst $(LOCAL_PATH)/,,$(wildcard $(LOCAL_PATH)/*$(COMMON_ANDROID_PACKAGE_SUFFIX)))
