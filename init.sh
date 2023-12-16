@@ -1324,12 +1324,12 @@ for c in `cat /proc/cmdline`; do
 					FORCE_DISABLE_STATUSBAR=*)
 						# Force disable statusbar
 						# options: true, false
-						set_property persist.bliss.disable_statusbar "$FORCE_DISABLE_NAV_TASKBAR"
+						set_property persist.bliss.disable_statusbar "$FORCE_DISABLE_STATUSBAR"
 						;;
 					FORCE_DISABLE_RECENTS=*)
 						# Force disable recents
 						# options: true, false
-						set_property persist.bliss.disable_recents "$FORCE_DISABLE_NAV_TASKBAR"
+						set_property persist.bliss.disable_recents "$FORCE_DISABLE_RECENTS"
 						;;
 					FORCE_HIDE_NAVBAR_WINDOW=*)
 						# Force hide navigation bar window
