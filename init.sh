@@ -590,17 +590,25 @@ function init_cpu_governor()
 
 function set_lowmem()
 {
-	# 512 MB size in kB : https://source.android.com/devices/tech/perf/low-ram
-	SIZE_512MB=2048000
+	# 3GB size in kB : https://source.android.com/devices/tech/perf/low-ram
+	SIZE_3GB=3145728
 
 	mem_size=`cat /proc/meminfo | grep MemTotal | tr -s ' ' | cut -d ' ' -f 2`
 
-	if [ "$mem_size" -le "$SIZE_512MB" ]
+	if [ "$mem_size" -le "$SIZE_3GB" ]
 	then
-		setprop ro.config.low_ram true
+		setprop ro.config.low_ram ${FORCE_LOW_MEM:-true}
 	else
-		setprop ro.config.low_ram false
+		# Choose between low-memory vs high-performance device. 
+		# Default = false.
+		setprop ro.config.low_ram ${FORCE_LOW_MEM:-false}
 	fi
+
+	# Use free memory and file cache thresholds for making decisions 
+	# when to kill. This mode works the same way kernel lowmemorykiller 
+	# driver used to work. AOSP Default = false, Our default = true
+	setprop ro.lmk.use_minfree_levels ${FORCE_MINFREE_LEVELS:-true}
+	
 }
 
 function set_custom_ota()
