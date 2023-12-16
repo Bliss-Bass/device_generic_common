@@ -157,3 +157,43 @@ endif
 
 # Some additional CLI programs
 PRODUCT_PACKAGES += tput dialog alsa-info.sh tree lspci dmidecode
+
+# SeedVault
+PRODUCT_PACKAGES += \
+    Seedvault \
+    BasicDreams \
+    
+# Include dhcptool
+PRODUCT_PACKAGES += \
+    libnetutils \
+    dhcpdbg
+
+# Bliss Ethernet Manager
+ifeq ($(USE_BLISS_ETHERNET_MANAGER), true)
+PRODUCT_PACKAGES += \
+    BlissEthernetManagerApp
+
+endif
+
+# Bliss Power Manager
+ifeq ($(USE_BLISS_POWER_MANAGER), true)
+PRODUCT_PACKAGES += \
+    BlissPowerManagerApp
+
+endif
+
+# Bliss Kiosk App
+ifeq ($(USE_BLISS_KIOSK_LAUNCHER), true)
+
+PRODUCT_PACKAGES += \
+    BlissKioskLauncher
+
+endif
+
+# Bliss Restricted Launcher
+ifeq ($(USE_BLISS_RESTRICTED_LAUNCHER), true)
+
+PRODUCT_PACKAGES += \
+    BlissRestrictedLauncher
+
+endif
