@@ -1237,8 +1237,21 @@ for c in `cat /proc/cmdline`; do
 						[ -n "$DEBUG" ] && set_property debug.logcat 1
 						[ "$DEBUG" = "0" ] || SETUPWIZARD=${SETUPWIZARD:-0}
 						;;
+					SET_LOGCAT_DEBUG=*)
+						set_property debug.logcat "$SET_LOGCAT_DEBUG"
+						;;
 					DPI=*)
 						set_property ro.sf.lcd_density "$DPI"
+						;;
+					SUSPEND_TYPE=*)
+						# set suspend type
+						# options: mem, disk, freeze mem, freeze disk
+						set_property sleep.state "$SUSPEND_TYPE"
+						;;
+					PWR_OFF_DBLCLK=*)
+						# set power off double click
+						# options: true,false
+						set_property poweroff.doubleclick "$PWR_OFF_DBLCLK"
 						;;
 					SET_SF_ROTATION=*)
 						set_property ro.sf.hwrotation "$SET_SF_ROTATION"
@@ -1264,6 +1277,28 @@ for c in `cat /proc/cmdline`; do
 						# Off: 0  On: 1
 						dumpsys battery set ac "$SET_FAKE_CHARGING_STATUS"
 						;;
+					SET_USB_BUS_PORTS=*)
+						# Set USB bus ports
+						# Example: SET_USB_BUS_PORTS=001/001,001/002,001/003,001/004
+						genports="${SET_USB_BUS_PORTS#*=}"
+						genports_array=($(echo $gentty | sed 's/,/ /g' | xargs))
+						# loop through each option
+						for port in "${genports_array[@]}"; do
+							chown system:system /dev/bus/usb/$port
+							chmod 666 /dev/bus/usb/$port
+						done
+						;;
+					SET_TTY_PORT_PERMS=*)
+						# Sets permissions for tty ports 
+						# Example: SET_TTY_PORT_PERMS=ttyS0,ttyS1,ttyS2
+						gentty="${SET_TTY_PORT_PERMS#*=}"
+						gentty_array=($(echo $gentty | sed 's/,/ /g' | xargs))
+						# loop through each option
+						for tport in "${gentty_array[@]}"; do
+							# chown system:system /dev/$tport
+							chmod 666 /dev/$tport
+						done
+						;;
 					FORCE_DISABLE_NAVIGATION=*)
 						# Force disable navigation bar
 						# options: true, false
@@ -1288,6 +1323,11 @@ for c in `cat /proc/cmdline`; do
 						# Force disable recents
 						# options: true, false
 						set_property persist.bliss.disable_recents "$FORCE_DISABLE_RECENTS"
+						;;
+					FORCE_HIDE_NAVBAR_WINDOW=*)
+						# Force hide navigation bar window
+						# options: 0, 1
+						set_property persist.wm.debug.hide_navbar_window "$FORCE_HIDE_NAVBAR_WINDOW"
 						;;
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
