@@ -412,6 +412,9 @@ function init_hal_power()
 		e-tab*Pro)
 			set_prop_if_empty sleep.state force
 			;;
+		*TAIFAElimuTab*)
+			set_property sleep.earlysuspend 1
+			;;
 		*)
 			;;
 	esac
