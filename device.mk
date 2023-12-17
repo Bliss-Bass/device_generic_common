@@ -31,6 +31,11 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES_DEBUG += \
     bootctl
 
+PRODUCT_PACKAGES += \
+    android.hardware.boot@1.2-x86impl \
+    android.hardware.boot@1.2-x86impl.recovery \
+    android.hardware.boot@1.2-service
+
 # Update engine
 PRODUCT_PACKAGES += \
     update_engine \
@@ -268,7 +273,7 @@ $(call inherit-product,$(if $(wildcard $(PRODUCT_DIR)packages.mk),$(PRODUCT_DIR)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/handheld_vendor.mk)
 
 # Inherit common Bliss stuff
-ifeq ($(IS_GO_VERSION),true)
+ifneq ($(IS_GO_VERSION),true)
 $(call inherit-product-if-exists,vendor/bliss/config/common_full_tablet.mk)
 else
 $(call inherit-product-if-exists,vendor/bliss/config/common_mini.mk)
