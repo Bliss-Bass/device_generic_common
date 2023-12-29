@@ -197,3 +197,13 @@ PRODUCT_PACKAGES += \
     BlissRestrictedLauncher
 
 endif
+
+# Surface specific
+ifeq ($(BOARD_IS_SURFACE_BUILD),true)
+PRODUCT_PACKAGES += iptsd_runner iptsd \
+                    iptsd-find-hidraw \
+                    iptsd-calibrate \
+                    iptsd-check-device \
+                    iptsd-dump \
+                    iptsd-perf
+endif

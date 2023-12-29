@@ -57,7 +57,8 @@ PRODUCT_PROPERTY_OVERRIDES := \
     dalvik.vm.useautofastjni=true \
     ro.surface_flinger.max_frame_buffer_acquired_buffers=3 \
     audio.safemedia.bypass=true \
-    persist.device_config.mglru_native.lru_gen_config=all
+    persist.device_config.mglru_native.lru_gen_config=all \
+    persist.sys.zram_enabled=1
 
 # LMKd
 ifneq ($(IS_GO_VERSION),true)
@@ -286,12 +287,21 @@ PRODUCT_BROKEN_VERIFY_USES_LIBRARIES := true
 WITH_SU := false
 
 ifeq ($(IS_GO_VERSION),true)
+ifeq ($(BOARD_IS_SURFACE_BUILD),true)
+$(error "Go build should not be mixed with Surface build")
+endif
 # Inherit common Android Go configurations
 $(call inherit-product, build/target/product/go_defaults.mk)
+BLISS_SPECIAL_VARIANT := -Go
 PRODUCT_TYPE := go
 DONT_UNCOMPRESS_PRIV_APPS_DEXS := true
 MALLOC_SVELTE := true
 $(call inherit-product-if-exists, frameworks/base/data/sounds/AudioPackageGo.mk)
+endif
+
+# Surface specific
+ifeq ($(BOARD_IS_SURFACE_BUILD),true)
+BLISS_SPECIAL_VARIANT := -Surface
 endif
 
 # Widevine addons

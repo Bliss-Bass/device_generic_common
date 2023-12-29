@@ -70,6 +70,50 @@ function init_hal_audio()
 			[ -d /proc/asound/card0 ] || modprobe snd-sb16 isapnp=0 irq=5
 			;;
 	esac
+
+	if [ "$BOARD" == "Jupiter" ]
+	then
+		alsaucm -c Valve-Jupiter-1 set _verb HiFi
+
+		pcm_card=$(cat /proc/asound/cards | grep acp5x | awk '{print $1}')
+		# headset microphone on d0, 32bit only
+		set_property hal.audio.in.headset "pcmC${pcm_card}D0c"
+		set_property hal.audio.in.headset.format 1
+		amixer -c ${pcm_card} sset 'Headset Mic',0 on
+
+		# internal microphone on d0, 32bit only
+		set_property hal.audio.in.mic "pcmC${pcm_card}D0c"
+		set_property hal.audio.in.mic.format 1
+		amixer -c ${pcm_card} sset 'Int Mic',0 on
+		amixer -c ${pcm_card} sset 'DMIC Enable',0 on
+
+		# headphone jack on d0, 32bit only
+		set_property hal.audio.out.headphone "pcmC${pcm_card}D0p"
+		set_property hal.audio.out.headphone.format 1
+		amixer -c ${pcm_card} sset 'Headphone',0 on
+
+		# speaker on d1, 16bit only
+		set_property hal.audio.out.speaker "pcmC${pcm_card}D1p"
+		set_property hal.audio.out.speaker.format 0
+		amixer -c ${pcm_card} sset 'Left DSP RX1 Source',0 ASPRX1
+		amixer -c ${pcm_card} sset 'Right DSP RX1 Source',0 ASPRX2
+		amixer -c ${pcm_card} sset 'Left DSP RX2 Source',0 ASPRX1
+		amixer -c ${pcm_card} sset 'Right DSP RX2 Source',0 ASPRX2
+		amixer -c ${pcm_card} sset 'Left DSP1 Preload',0 on
+		amixer -c ${pcm_card} sset 'Right DSP1 Preload',0 on
+
+
+		# enable hdmi audio on the 3rd output, but it really depends on how docks wire things
+		# to make matters worse, jack detection on alsa does not seem to always work on my setup, so a dedicated hdmi hal might want to send data to all ports instead of just probing
+		pcm_card=$(cat /proc/asound/cards | grep HDA-Intel | awk '{print $1}')
+		set_property hal.audio.out.hdmi "pcmC${pcm_card}D8p"
+
+		# unmute them all
+		amixer -c ${pcm_card} sset 'IEC958',0 on
+		amixer -c ${pcm_card} sset 'IEC958',1 on
+		amixer -c ${pcm_card} sset 'IEC958',2 on
+		amixer -c ${pcm_card} sset 'IEC958',3 on
+	fi
 }
 
 function init_hal_bluetooth()
@@ -177,6 +221,7 @@ function init_hal_gralloc()
 			;&
 		*nouveau)
 			GRALLOC=${GRALLOC:-gbm_hack}
+			HWC=${HWC:-drm_celadon}
 			;&
 		*i915)
 			if [ "$(cat /sys/kernel/debug/dri/0/i915_capabilities | grep -e 'gen' -e 'graphics version' | awk '{print $NF}')" -gt 9 ]; then
@@ -321,6 +366,11 @@ function init_hal_media()
 		set_property ro.yuv420.disable true
 	else
 		set_property ro.yuv420.disable false
+	fi
+
+	if [ "$BOARD" == "Jupiter" ]
+	then
+		FFMPEG_CODEC2_PREFER=${FFMPEG_CODEC2_PREFER:-1}
 	fi
 
 #FFMPEG Codec Setup
@@ -517,6 +567,14 @@ function init_hal_sensors()
             elif [ "$hal_sensors" != "kbd" ] | [ hal_sensors=iio ]; then
                 has_sensors=true
             fi
+
+            # is steam deck?
+            if [ "$BOARD" == "Jupiter" ]
+            then
+                set_property poweroff.disable_virtual_power_button 1
+                hal_sensors=jupiter
+                has_sensors=true
+            fi
     fi
 
     set_property ro.iio.accel.quirks "no-trig,no-event"
@@ -524,6 +582,15 @@ function init_hal_sensors()
     set_property ro.iio.magn.quirks "no-trig,no-event"
     set_property ro.hardware.sensors $hal_sensors
     set_property config.override_forced_orient ${HAS_SENSORS:-$has_sensors}
+}
+
+function init_hal_surface()
+{
+	case "$UEVENT" in
+		*Surface*Pro*[4-9]*|*Surface*Book*|*Surface*Laptop*[1~4]*|*Surface*Laptop*Studio*)
+			start iptsd_runner
+			;;
+	esac
 }
 
 function create_pointercal()
@@ -1115,6 +1182,7 @@ function do_init()
 	init_hal_power
 	init_hal_thermal
 	init_hal_sensors
+	init_hal_surface
 	init_tscal
 	init_ril
 	init_loop_links
@@ -1172,6 +1240,10 @@ function do_bootcomplete()
 			alsa_amixer -c $c set 'Mic Boost' 1
 			alsa_amixer -c $c set 'Internal Mic Boost' 1
 		fi
+		d=/data/vendor/alsa/$(cat /proc/asound/card$c/id).state
+		if [ -e $d ]; then
+			alsa_ctl -f $d restore $c
+		fi
 	done
 
 	# check wifi setup
@@ -1204,6 +1276,7 @@ function do_bootcomplete()
 	#/system/bin xtr.keymapper.server.InputService > /dev/null 2>&1 &
 
 	if [ ! "$(getprop ro.boot.slot_suffix)" ]; then
+		pm disable com.blissos.updater
 		pm disable org.lineageos.updater
 	fi
 
