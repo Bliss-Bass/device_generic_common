@@ -69,9 +69,19 @@ function init_hal_audio()
 		VirtualBox*|Bochs*)
 			[ -d /proc/asound/card0 ] || modprobe snd-sb16 isapnp=0 irq=5
 			;;
+		TS10*)
+			set_prop_if_empty hal.audio.out pcmC0D2p
+			;;
 	esac
 
-	if [ "$BOARD" == "Jupiter" ]
+	case "$(ls /proc/asound)" in
+		*sofhdadsp*)
+			AUDIO_PRIMARY=x86_celadon
+			;;
+	esac
+	set_property ro.hardware.audio.primary ${AUDIO_PRIMARY:-x86}
+
+	if [ "$BOARD" == "Jupiter" || "$VENDOR" == "Valve" ]
 	then
 		alsaucm -c Valve-Jupiter-1 set _verb HiFi
 
@@ -114,6 +124,33 @@ function init_hal_audio()
 		amixer -c ${pcm_card} sset 'IEC958',2 on
 		amixer -c ${pcm_card} sset 'IEC958',3 on
 	fi
+
+#	[ -d /proc/asound/card0 ] || modprobe snd-dummy
+	for c in $(grep '\[.*\]' /proc/asound/cards | awk '{print $1}'); do
+		f=/system/etc/alsa/$(cat /proc/asound/card$c/id).state
+		if [ -e $f ]; then
+			alsa_ctl -f $f restore $c
+		else
+			alsa_ctl init $c
+			alsa_amixer -c $c set Master on
+			alsa_amixer -c $c set Master 100%
+			alsa_amixer -c $c set Headphone on
+			alsa_amixer -c $c set Headphone 100%
+			alsa_amixer -c $c set Speaker on
+			alsa_amixer -c $c set Speaker 100%
+			alsa_amixer -c $c set Capture 80%
+			alsa_amixer -c $c set Capture cap
+			alsa_amixer -c $c set PCM 100% unmute
+			alsa_amixer -c $c set SPO unmute
+			alsa_amixer -c $c set IEC958 on
+			alsa_amixer -c $c set 'Mic Boost' 1
+			alsa_amixer -c $c set 'Internal Mic Boost' 1
+		fi
+		d=/data/vendor/alsa/$(cat /proc/asound/card$c/id).state
+		if [ -e $d ]; then
+			alsa_ctl -f $d restore $c
+		fi
+	done
 }
 
 function init_hal_bluetooth()
@@ -368,7 +405,7 @@ function init_hal_media()
 		set_property ro.yuv420.disable false
 	fi
 
-	if [ "$BOARD" == "Jupiter" ]
+	if [ "$BOARD" == "Jupiter" || "$VENDOR" == "Valve" ]
 	then
 		FFMPEG_CODEC2_PREFER=${FFMPEG_CODEC2_PREFER:-1}
 	fi
@@ -569,7 +606,7 @@ function init_hal_sensors()
             fi
 
             # is steam deck?
-            if [ "$BOARD" == "Jupiter" ]
+            if [ "$BOARD" == "Jupiter" || "$VENDOR" == "Valve" ]
             then
                 set_property poweroff.disable_virtual_power_button 1
                 hal_sensors=jupiter
@@ -1219,33 +1256,6 @@ function do_bootcomplete()
 			;;
 	esac
 
-#	[ -d /proc/asound/card0 ] || modprobe snd-dummy
-	for c in $(grep '\[.*\]' /proc/asound/cards | awk '{print $1}'); do
-		f=/system/etc/alsa/$(cat /proc/asound/card$c/id).state
-		if [ -e $f ]; then
-			alsa_ctl -f $f restore $c
-		else
-			alsa_ctl init $c
-			alsa_amixer -c $c set Master on
-			alsa_amixer -c $c set Master 100%
-			alsa_amixer -c $c set Headphone on
-			alsa_amixer -c $c set Headphone 100%
-			alsa_amixer -c $c set Speaker on
-			alsa_amixer -c $c set Speaker 100%
-			alsa_amixer -c $c set Capture 80%
-			alsa_amixer -c $c set Capture cap
-			alsa_amixer -c $c set PCM 100% unmute
-			alsa_amixer -c $c set SPO unmute
-			alsa_amixer -c $c set IEC958 on
-			alsa_amixer -c $c set 'Mic Boost' 1
-			alsa_amixer -c $c set 'Internal Mic Boost' 1
-		fi
-		d=/data/vendor/alsa/$(cat /proc/asound/card$c/id).state
-		if [ -e $d ]; then
-			alsa_ctl -f $d restore $c
-		fi
-	done
-
 	# check wifi setup
 	FILE_CHECK=/data/misc/wifi/wpa_supplicant.conf
 
@@ -1292,6 +1302,7 @@ PATH=/sbin:/system/bin:/system/xbin
 DMIPATH=/sys/class/dmi/id
 BOARD=$(cat $DMIPATH/board_name)
 PRODUCT=$(cat $DMIPATH/product_name)
+VENDOR=$(cat $DMIPATH/sys_vendor)
 UEVENT=$(cat $DMIPATH/uevent)
 
 # import cmdline variables
