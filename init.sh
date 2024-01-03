@@ -891,6 +891,10 @@ function set_custom_package_perms()
 		# allow displaying over other apps if in Go mode
 		settings put system alert_window_bypass_low_ram 1
 
+		# Enable desktop mode on external display (required for MultiDisplay Input)
+		settings put global force_desktop_mode_on_external_displays 1
+		settings put global force_allow_on_external 1
+
 		# Only if PC_MODE is 1
 		if [ $PC_MODE -eq 1 ]; then
 			
