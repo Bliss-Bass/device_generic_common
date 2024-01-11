@@ -952,7 +952,7 @@ function set_custom_package_perms()
 			fi
 
 			# Disable Launcher3 Taskbar
-			set_property persist.wm.debug.hide_navbar_window 1
+			set_property persist.wm.debug.hide_navbar_window ${HIDE_NAVBAR_WINDOW:-1}
 
 			[ -n "$SET_SMARTDOCK_DEFAULT" ] && pm set-home-activity "cu.axel.smartdock/.activities.LauncherActivity" || pm set-home-activity "com.android.launcher3/.LauncherProvider"
 			
