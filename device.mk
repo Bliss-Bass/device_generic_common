@@ -342,10 +342,13 @@ $(call inherit-product-if-exists, vendor/boringdroid/boringdroid.mk)
 # vendor customization layer
 $(call inherit-product-if-exists, vendor/bass/branding.mk)
 
+
+ifneq ($(or $(USE_BLISS_KIOSK_LAUNCHER), $(USE_BLISS_RESTRICTED_LAUNCHER)),true)
 # Enable MultiWindow
 PRODUCT_PROPERTY_OVERRIDES += \
-    persist.sys.debug.multi_window=true
+    persist.sys.debug.multi_window=true \
     persist.sys.debug.desktop_mode=true
+endif
 
 # DRM service opt-in
 PRODUCT_VENDOR_PROPERTIES += drm.service.enabled=true
