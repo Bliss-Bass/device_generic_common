@@ -792,9 +792,11 @@ function do_init()
 {
 	init_misc
 	set_lowmem
+	set_usb_mode
 	set_custom_timezone
 	init_hal_audio
 	set_custom_ota
+	set_max_logd
 	init_hal_bluetooth
 	init_hal_camera
 	init_hal_gps
@@ -875,6 +877,10 @@ function do_bootcomplete()
 	if [ ! "$(getprop ro.boot.slot_suffix)" ]; then
 		pm disable org.lineageos.updater
 	fi
+
+	set_custom_settings
+	set_custom_package_perms
+	set_package_opts
 
 	post_bootcomplete
 }
