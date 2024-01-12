@@ -81,6 +81,10 @@ PRODUCT_COPY_FILES := \
     $(if $(wildcard $(PRODUCT_DIR)init.$(TARGET_PRODUCT).rc),$(PRODUCT_DIR)init.$(TARGET_PRODUCT).rc,$(LOCAL_PATH)/init.x86.rc):root/init.$(TARGET_PRODUCT).rc \
     $(if $(wildcard $(PRODUCT_DIR)ueventd.$(TARGET_PRODUCT).rc),$(PRODUCT_DIR)ueventd.$(TARGET_PRODUCT).rc,$(LOCAL_PATH)/ueventd.x86.rc):$(TARGET_COPY_OUT_VENDOR)/etc/ueventd.rc \
 
+# Add bass-init.sh
+PRODUCT_COPY_FILES := \
+    $(if $(wildcard $(PRODUCT_DIR)bass/init/bass-init.sh),$(PRODUCT_DIR),$(LOCAL_PATH)/)bass/init/bass-init.sh:system/etc/bass-init.sh \
+
 # Copy System Files
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/ppp/ip-up:$(TARGET_COPY_OUT_SYSTEM)/etc/ppp/ip-up \

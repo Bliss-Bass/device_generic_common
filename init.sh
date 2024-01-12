@@ -4,6 +4,9 @@
 # License: GNU Public License v2 or later
 #
 
+# import the bass functions from bass/init/bass-init.sh
+. bass-init.sh
+
 function set_property()
 {
 	setprop "$1" "$2"
