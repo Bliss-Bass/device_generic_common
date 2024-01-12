@@ -64,7 +64,6 @@ PRODUCT_PROPERTY_OVERRIDES := \
 ifneq ($(BOARD_IS_GO_BUILD),true)
 PRODUCT_PRODUCT_PROPERTIES += \
     ro.lmk.critical_upgrade=true \
-    ro.lmk.use_minfree_levels=true \
     ro.lmk.use_psi=true \
     ro.lmk.use_new_strategy=false
 endif
