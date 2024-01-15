@@ -55,12 +55,6 @@ function init_misc()
 		fi
 	fi
 
-	##WIP: Enable USB as device support
-    modprobe roles
-    modprobe xhci-hcd
-    modprobe xhci-pci
-    modprobe dwc3
-    modprobe dwc3-pci
 }
 
 function init_hal_audio()
