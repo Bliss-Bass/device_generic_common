@@ -823,6 +823,24 @@ function set_custom_package_perms()
 		am start -a android.intent.action.MAIN -c android.intent.category.HOME
 	fi
 
+	# BlissRestrictedLauncherPro
+	exists_restlauncherpro=$(pm list packages com.bliss.restrictedlauncher.pro | grep -c com.bliss.restrictedlauncher.pro)
+	if [ $exists_restlauncherpro -eq 1 ]; then
+		if [ ! -f /data/misc/rlpconfig/admin ]; then
+			# set device admin
+			dpm set-device-owner com.bliss.restrictedlauncher.pro/com.bliss.restrictedlauncher.DeviceAdmin
+			mkdir -p /data/misc/rlconfig
+			touch /data/misc/rlconfig/admin
+			chown 1000.1000 /data/misc/rlconfig /data/misc/rlconfig/*
+			chmod 775 /data/misc/rlconfig
+			chmod 664 /data/misc/rlconfig/admin
+		fi
+				
+		pm grant com.bliss.restrictedlauncher.pro android.permission.SYSTEM_ALERT_WINDOW
+		pm set-home-activity "com.bliss.restrictedlauncher.pro/com.bliss.restrictedlauncher.activities.LauncherActivity"
+		am start -a android.intent.action.MAIN -c android.intent.category.HOME
+	fi
+
 	# Game-Mode Launcher
 	exists_molla=$(pm list packages com.sinu.molla | grep -c com.sinu.molla)
 	if [ $exists_molla -eq 1 ]; then
