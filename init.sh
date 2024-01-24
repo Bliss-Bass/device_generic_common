@@ -30,6 +30,15 @@ function init_misc()
 	# in case no cpu governor driver autoloads
 	[ -d /sys/devices/system/cpu/cpu0/cpufreq ] || modprobe acpi-cpufreq
 
+	# Allow for adjusting intel_pstate max/min freq on boot
+	if [ -n "$INTEL_PSTATE_CPU_MIN_PERF_PCT"  ]; then
+		echo $INTEL_PSTATE_CPU_MIN_PERF_PCT > /sys/devices/system/cpu/intel_pstate/min_perf_pct
+	fi
+	
+	if [ -n "$INTEL_PSTATE_CPU_MAX_PERF_PCT"  ]; then
+		echo $INTEL_PSTATE_CPU_MAX_PERF_PCT > /sys/devices/system/cpu/intel_pstate/max_perf_pct
+	fi
+
 	# enable sdcardfs if /data is not mounted on tmpfs or 9p
 	#mount | grep /data\ | grep -qE 'tmpfs|9p'
 	#[ $? -eq 0 ] && set_prop_if_empty ro.sys.sdcardfs false
