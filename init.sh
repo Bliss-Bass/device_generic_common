@@ -510,10 +510,10 @@ function init_hal_power()
 	# TODO
 	case "$PRODUCT" in
 		HP*Omni*|OEMB|Standard*PC*|Surface*3|T10*TA|VMware*)
-			set_prop_if_empty sleep.state none
+			SLEEP_STATE=none
 			;;
 		e-tab*Pro)
-			set_prop_if_empty sleep.state force
+			SLEEP_STATE=force
 			;;
 		*TAIFAElimuTab*)
 			set_property sleep.earlysuspend 1
@@ -521,6 +521,8 @@ function init_hal_power()
 		*)
 			;;
 	esac
+
+	set_property sleep.state ${SLEEP_STATE}
 }
 
 function init_hal_thermal()
