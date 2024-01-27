@@ -1067,7 +1067,7 @@ function set_custom_package_perms()
 			appops set com.google.android.vending android.permission.FAKE_PACKAGE_SIGNATURE
 		fi
 	fi
-	
+
 }
 
 function set_usb_mode()
@@ -1264,7 +1264,11 @@ function set_custom_settings()
 							settings put secure sysui_qs_tiles "rotation,caffeine,$(settings get secure sysui_qs_tiles)"
 							cmd connectivity airplane-mode enable
 							;;
-						
+						FORCE_DESKTOP_ON_EXTERNAL=*)
+							# Enable desktop mode on external display (required for MultiDisplay Input)
+							settings put global force_desktop_mode_on_external_displays "$FORCE_DESKTOP_ON_EXTERNAL"
+							settings put global force_allow_on_external "$FORCE_DESKTOP_ON_EXTERNAL"
+							;;
                     esac
                 fi
                 ;;
