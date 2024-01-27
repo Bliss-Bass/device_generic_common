@@ -82,7 +82,9 @@ on boot
 
     #Celadon thermal HAL
     chown system system /sys/devices/system/cpu/intel_pstate/max_perf_pct
+	chmod 0660 /sys/devices/system/cpu/intel_pstate/max_perf_pct
     chown system system /sys/devices/system/cpu/intel_pstate/min_perf_pct
+	chmod 0660 /sys/devices/system/cpu/intel_pstate/min_perf_pct
     chown system system /sys/devices/system/cpu/intel_pstate/no_turbo
     chown system system /sys/class/powercap/intel-rapl:0/enabled
     chown system system /sys/class/powercap/intel-rapl:0/constraint_0_power_limit_uw
@@ -91,6 +93,7 @@ on boot
     chown system system /system/vendor/etc/
     chown system system /system/vendor/etc/thermal-daemon/thermal-conf.xml
     restorecon_recursive /sys/class/powercap
+	write /sys/kernel/debug/pstate_snb/setpoint 75
 
 on property:sys.boot_completed=1 && property:ro.boot.bliss.animation.scale=*
     exec u:r:init:s0 -- /system/bin/settings put global animator_duration_scale ${ro.boot.bliss.animation.scale}
