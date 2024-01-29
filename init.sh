@@ -1309,6 +1309,9 @@ function set_iio_options()
 							# (0,1) 0=off, 1=on
 							set_property ro.ignore_atkbd "$SET_IGNORE_ATKBD"
 							;;
+						SET_IIO_MAGN_QUIRKS=*)
+							set_property ro.iio.magn.quirks "$SET_IIO_MAGN_QUIRKS"
+							;;
 					esac
 				fi
 				;;
