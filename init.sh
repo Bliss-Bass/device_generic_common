@@ -931,7 +931,7 @@ function set_custom_package_perms()
 		settings put system alert_window_bypass_low_ram 1
 
 		# Only if PC_MODE is 1
-		if [ $PC_MODE -eq 1 ]; then
+		# if [ $PC_MODE -eq 1 ]; then
 			
 			if [ ! -f /data/misc/sdconfig/accessibility ] && ! pm list packages | grep -q "com.blissos.setupwizard"; then
 				# set accessibility services
@@ -978,7 +978,7 @@ function set_custom_package_perms()
 
 			[ -n "$SET_SMARTDOCK_DEFAULT" ] && pm set-home-activity "cu.axel.smartdock/.activities.LauncherActivity" || pm set-home-activity "com.android.launcher3/.LauncherProvider"
 			
-		fi
+		# fi
 	fi
 
 	# com.farmerbb.taskbar
