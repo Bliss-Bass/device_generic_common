@@ -545,13 +545,14 @@ function init_hal_power()
 			SLEEP_STATE=force
 			;;
 		*TAIFAElimuTab*)
-			set_property sleep.earlysuspend 1
+			setprop sleep.earlysuspend 1
 			;;
 		*)
 			;;
 	esac
 
-	set_property sleep.state ${SLEEP_STATE}
+	# if SLEEP_STATE is defined, use that
+	[ -n "$SLEEP_STATE" ] && setprop sleep.state ${SLEEP_STATE}
 }
 
 function init_hal_thermal()
@@ -1448,8 +1449,12 @@ for c in `cat /proc/cmdline`; do
 						set_property ro.sf.lcd_density "$DPI"
 						;;
 					SUSPEND_TYPE=*)
-						# set suspend type
-						# options: mem, disk, freeze mem, freeze disk
+						# Override auto-detected power suspend type
+						# options: (https://www.kernel.org/doc/Documentation/power/interface.txt)
+						# 	'freeze' (Suspend-to-Idle)
+						# 	'standby' (Power-On Suspend)
+						# 	'mem' (Suspend-to-RAM)
+						# 	'disk' (Suspend-to-Disk)
 						set_property sleep.state "$SUSPEND_TYPE"
 						;;
 					PWR_OFF_DBLCLK=*)
