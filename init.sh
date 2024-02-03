@@ -57,6 +57,8 @@ function init_misc()
 	# Set cpu scaling at boot (ie set pstate status to active/passive at boot)
 	if [ -n "$INTEL_PSTATE_STATUS"  ]; then
 		echo $INTEL_PSTATE_STATUS > /sys/devices/system/cpu/intel_pstate/status
+	else
+		echo passive > /sys/devices/system/cpu/intel_pstate/status
 	fi
 
 	# enable sdcardfs if /data is not mounted on tmpfs or 9p
