@@ -555,7 +555,7 @@ function init_hal_power()
 
 	# Detect is deep sleep is supported and auto set sleep.state parameter
 	mem_sleep_default=$(cat /sys/power/mem_sleep)
-	if [ "${mem_sleep_default}" = "${mem_sleep_default/deep/}" ]; then
+	if [[ "$mem_sleep_default" == *deep* ]]; then
 		setprop sleep.state ${SLEEP_STATE:-mem}
 	else
 		setprop sleep.state ${SLEEP_STATE:-s2idle}
