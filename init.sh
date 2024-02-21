@@ -1537,6 +1537,12 @@ for c in `cat /proc/cmdline`; do
 						# Force hw timeout multiplier, # X 5s
 						# options: (integer)
 						set_property ro.hw_timeout_multiplier "$FORCE_HW_TIMEOUT_MULTIPLIER"
+						;;
+					BOOT_FACTORY_TEST=*)
+						# Boot into factory test mode
+						# options: 0, 1
+						set_property ro.factorytest "$BOOT_FACTORY_MODE"
+						;;
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
 			fi
