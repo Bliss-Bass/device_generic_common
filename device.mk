@@ -103,6 +103,10 @@ endif
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.hw_timeout_multiplier=3
 
+# Use FUSE passthrough
+PRODUCT_PRODUCT_PROPERTIES += \
+    persist.sys.fuse.passthrough.enable=true
+
 PRODUCT_COPY_FILES := \
     $(if $(wildcard $(PRODUCT_DIR)init.rc),$(PRODUCT_DIR)init.rc:root/init.rc) \
     $(if $(wildcard $(PRODUCT_DIR)init.sh),$(PRODUCT_DIR),$(LOCAL_PATH)/)init.sh:system/etc/init.sh \
@@ -222,7 +226,7 @@ $(foreach f,$(wildcard $(LOCAL_PATH)/permissions_product/*.xml),\
     $(eval PRODUCT_COPY_FILES += $(f):$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/$(notdir $f)))
 
 # Get emulated storage settings
-#$(call inherit-product, $(SRC_TARGET_DIR)/product/emulated_storage.mk)
+$(call inherit-product, $(SRC_TARGET_DIR)/product/emulated_storage.mk)
 
 # Get Android 8.0 HIDL HALs
 $(call inherit-product,$(LOCAL_PATH)/treble.mk)
