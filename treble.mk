@@ -27,9 +27,9 @@ PRODUCT_PACKAGES += \
 
 # Bluetooth HAL
 PRODUCT_PACKAGES += \
-    android.hardware.bluetooth@1.0-service.vbt \
+    android.hardware.bluetooth@1.1-service.vbt \
+    android.hardware.bluetooth@1.1-service.btlinux \
     android.hardware.bluetooth.audio@2.1-impl \
-#    android.hardware.bluetooth@1.1-service.btlinux \
 
 # Camera Device
 PRODUCT_PACKAGES += \
@@ -38,7 +38,6 @@ PRODUCT_PACKAGES += \
     android.hardware.camera.device@3.2 \
     android.hardware.camera.device@3.4 \
     android.hardware.camera.device@3.5
-
 # Camera HAL
 PRODUCT_PACKAGES += \
     android.hardware.camera.provider@2.4-external-service \
@@ -105,8 +104,6 @@ PRODUCT_PACKAGES += \
 
 # Drm HAL
 PRODUCT_PACKAGES += \
-    android.hardware.drm@1.0-impl \
-    android.hardware.drm@1.0-service-lazy \
     android.hardware.drm@1.4-service-lazy.clearkey
 
 # GPS HAL
