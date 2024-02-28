@@ -200,6 +200,31 @@ function init_hal_audio_bootcomplete()
 	done
 }
 
+function init_bcm_wireless()
+{
+	# Inspired from PhoenixOS bcm wireless init
+	local BCMAID=$(lspci | grep "14e4" | awk '{print $4}' | cut -d':' -f2)
+
+	case "${BCMAID}" in
+		4311|4312|4315|4727|4328|4329|432a|432b|432c|432d|0576|4353|4357|4358|4359|4365|4331|43b1|43a0|4360 )
+			lsmod | grep "b43\|b44\|b43legacy\|ssb\|bcma\|brcm80211\|wl" && {
+				rmmod b43 b44 b43legacy ssb bcma brcm80211 wl
+				modprobe wl
+			}
+			;;
+		*)
+			;;
+	esac
+	BCMVRAM=$(ls /sys/firmware/efi/efivars | grep nvram)
+	BCMSDIO=$(dmesg | grep brcmfmac | grep txt)
+	if [ -n "$BCMSDIO" ]; then 
+		BCMNAME=$(echo $BCMSDIO | awk '{print $9}')
+		mount -t efivarfs none /sys/firmware/efi/efivars
+		cp /sys/firmware/efi/efivars/nvram-74b00bd9-805a-4d61-b51f-43268123d113 /lib/firmware/$BCMNAME
+		set_property bliss.brcmfmac 1
+	fi
+}
+
 function init_hal_bluetooth()
 {
 	for r in /sys/class/rfkill/*; do
