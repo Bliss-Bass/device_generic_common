@@ -907,6 +907,22 @@ function set_custom_package_perms()
 		settings put global force_desktop_mode_on_external_displays 1
 	fi
 
+	# GBoard 
+	exists_gboard=$(pm list packages com.google.android.inputmethod.latin | grep -c com.google.android.inputmethod.latin)
+	if [ $exists_gboard -eq 1 ]; then
+		if [ ! -f /data/misc/gboard/default ]; then
+			# set default input method
+			ime enable com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME
+			ime set com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME
+			# Set config marker
+			mkdir -p /data/misc/gboard
+			touch /data/misc/gboard/default
+			chown 1000.1000 /data/misc/gboard /data/misc/gboard/*
+			chmod 775 /data/misc/gboard
+			chmod 664 /data/misc/gboard/default
+		fi
+	fi
+
 	# BlissRestrictedLauncher
 	exists_restlauncher=$(pm list packages com.bliss.restrictedlauncher | grep -c com.bliss.restrictedlauncher)
 	if [ $exists_restlauncher -eq 1 ]; then
