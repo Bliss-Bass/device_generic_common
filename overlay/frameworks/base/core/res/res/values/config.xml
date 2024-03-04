@@ -255,4 +255,7 @@
          The default is false. -->
     <bool name="config_lidControlsSleep">true</bool>
 
+    <!-- Controls whether the IME renders the back and IME switcher buttons or not. -->
+    <bool name="config_imeDrawsImeNavBar">false</bool>
+
 </resources>
