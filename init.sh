@@ -959,17 +959,31 @@ function set_custom_package_perms()
 		am start -a android.intent.action.MAIN -c android.intent.category.HOME
 	fi
 
-	# Game-Mode Launcher
+	# Molla Launcher
 	exists_molla=$(pm list packages com.sinu.molla | grep -c com.sinu.molla)
 	if [ $exists_molla -eq 1 ]; then
 		pm set-home-activity "com.sinu.molla/.MainActivity"
 		am start -a android.intent.action.MAIN -c android.intent.category.HOME
 	fi
 
-	# Game-Mode Launcher
+	# CrossLauncher
 	exists_cross=$(pm list packages id.psw.vshlauncher | grep -c id.psw.vshlauncher)
 	if [ $exists_cross -eq 1 ]; then
 		pm set-home-activity "id.psw.vshlauncher/.activities.Xmb"
+		am start -a android.intent.action.MAIN -c android.intent.category.HOME
+	fi
+
+	# TV-Mode Launcher
+	exists_tvl=$(pm list packages nl.ndat.tvlauncher | grep -c nl.ndat.tvlauncher)
+	if [ $exists_tvl -eq 1 ]; then
+		pm set-home-activity "nl.ndat.tvlauncher/.MainActivity"
+		am start -a android.intent.action.MAIN -c android.intent.category.HOME
+	fi
+
+	# Titanius Launcher
+	exists_titanius=$(pm list packages app.titanius.launcher | grep -c app.titanius.launcher)
+	if [ $exists_titanius -eq 1 ]; then
+		pm set-home-activity "app.titanius.launcher/.MainActivity"
 		am start -a android.intent.action.MAIN -c android.intent.category.HOME
 	fi
 
