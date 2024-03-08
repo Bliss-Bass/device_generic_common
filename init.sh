@@ -897,14 +897,14 @@ function set_custom_package_perms()
 	exists_mcime=$(pm list packages com.example.android.multiclientinputmethod | grep -c com.example.android.multiclientinputmethod)
 	if [ $exists_mcime -eq 1 ]; then
 		# Enable desktop mode on external display (required for MultiDisplay Input)
-		settings put global force_desktop_mode_on_external_displays 1
+		settings put global force_desktop_mode_on_external_displays "$FORCE_DESKTOP_ON_EXTERNAL"
 	fi
 
 	# ZQYMultiClientIME
 	exists_zqymcime=$(pm list packages com.zqy.multidisplayinput | grep -c com.zqy.multidisplayinput)
 	if [ $exists_zqymcime -eq 1 ]; then
 		# Enable desktop mode on external display (required for MultiDisplay Input)
-		settings put global force_desktop_mode_on_external_displays 1
+		settings put global force_desktop_mode_on_external_displays "$FORCE_DESKTOP_ON_EXTERNAL"
 	fi
 
 	# GBoard 

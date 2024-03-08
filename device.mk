@@ -354,8 +354,14 @@ $(call inherit-product-if-exists, vendor/bass/branding.mk)
 ifneq ($(or $(USE_BLISS_KIOSK_LAUNCHER), $(USE_BLISS_RESTRICTED_LAUNCHER)),true)
 # Enable MultiWindow
 PRODUCT_PROPERTY_OVERRIDES += \
-    persist.sys.debug.multi_window=true \
+    persist.sys.debug.multi_window=true
+
+ifeq ($(USE_DESKTOP_MODE_ON_SECONDARY_DISPLAY),true)
+PRODUCT_PROPERTY_OVERRIDES += \
     persist.sys.debug.desktop_mode=true
+
+endif # USE_DESKTOP_MODE_ON_SECONDARY_DISPLAY
+
 endif
 
 # DRM service opt-in
