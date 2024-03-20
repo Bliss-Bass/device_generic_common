@@ -1629,6 +1629,17 @@ for c in `cat /proc/cmdline`; do
 						# options: 0, 1
 						set_property ro.factorytest "$BOOT_FACTORY_MODE"
 						;;
+					FORCE_NAVBAR_ON_SECONDARY_DISPLAYS=*)
+						# Force navigation bar on secondary displays
+						# options: 0, 1
+						set_property ro.boot.force.navbar_on_secondary_displays "$FORCE_NAVBAR_ON_SECONDARY_DISPLAYS"
+						;;
+					FORCE_IME_ON_SECONDARY_DISPLAYS=*)
+						# Force IME on secondary displays
+						# options: 0, 1
+						set_property ro.boot.bliss.force_ime_on_all_displays "$FORCE_IME_ON_SECONDARY_DISPLAYS"
+						;;
+					
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
 			fi
