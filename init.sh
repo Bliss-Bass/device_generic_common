@@ -1345,8 +1345,13 @@ function set_custom_settings()
 							;;
 						FORCE_DESKTOP_ON_EXTERNAL=*)
 							# Enable desktop mode on external display (required for MultiDisplay Input)
-							settings put global force_desktop_mode_on_external_displays "$FORCE_DESKTOP_ON_EXTERNAL"
-							settings put global force_allow_on_external "$FORCE_DESKTOP_ON_EXTERNAL"
+							if [ "$FORCE_DESKTOP_ON_EXTERNAL" == "0" ]; then
+								settings put global force_desktop_mode_on_external_displays ""
+								settings put global force_allow_on_external ""
+							else
+								settings put global force_desktop_mode_on_external_displays 1
+								settings put global force_allow_on_external 1
+							fi
 							;;
                     esac
                 fi
