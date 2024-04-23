@@ -169,7 +169,7 @@
 
     <!-- Whether the system enables per-display focus. If the system has the input method for each
          display, this value should be true. -->
-    <bool name="config_perDisplayFocusEnabled">true</bool>
+    <bool name="config_perDisplayFocusEnabled">false</bool>
 
     <!-- use celadon_tablet autobrightness values as a one size fit all
          iio sensor hal allows scaling light sensor values to match these -->
