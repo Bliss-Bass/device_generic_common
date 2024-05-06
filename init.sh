@@ -935,6 +935,12 @@ function set_custom_package_perms()
 			chmod 775 /data/misc/rlconfig
 			chmod 664 /data/misc/rlconfig/admin
 		fi
+
+		# set overlays enabled
+		settings put secure secure_overlay_settings 1
+
+		# allow displaying over other apps if in Go mode
+		settings put system alert_window_bypass_low_ram 1
 				
 		pm grant com.bliss.restrictedlauncher android.permission.SYSTEM_ALERT_WINDOW
 		pm set-home-activity "com.bliss.restrictedlauncher/.activities.LauncherActivity"
@@ -953,6 +959,12 @@ function set_custom_package_perms()
 			chmod 775 /data/misc/rlconfig
 			chmod 664 /data/misc/rlconfig/admin
 		fi
+
+		# set overlays enabled
+		settings put secure secure_overlay_settings 1
+
+		# allow displaying over other apps if in Go mode
+		settings put system alert_window_bypass_low_ram 1
 				
 		pm grant com.bliss.restrictedlauncher.pro android.permission.SYSTEM_ALERT_WINDOW
 		pm set-home-activity "com.bliss.restrictedlauncher.pro/com.bliss.restrictedlauncher.activities.LauncherActivity"
