@@ -1644,7 +1644,12 @@ for c in `cat /proc/cmdline`; do
 						# options: 0, 1
 						set_property ro.boot.bliss.force_ime_on_all_displays "$FORCE_IME_ON_SECONDARY_DISPLAYS"
 						;;
-					
+					SET_SECOND_DISPLAY_PKG=*)
+						# For debugging purposes, if the activity's package name contains the value of
+						# the "debug.use-second-display" system property as a substring, then show
+						# its content on a secondary display if there is one.
+						set_property debug.second-display.pkg "$SET_SECOND_DISPLAY_PKG"
+						;;
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
 			fi
