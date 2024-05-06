@@ -1551,6 +1551,14 @@ for c in `cat /proc/cmdline`; do
 					SET_SF_ROTATION=*)
 						set_property ro.sf.hwrotation "$SET_SF_ROTATION"
 						;;
+					SET_TOUCHSCREEN_ROTATION=*)
+						# property: ro.boot.hwrotation has four cases:
+						# 0, 90, 180, 270
+						#
+						# This property will also trigger SET_PRIMARY_DISPLAY_ORIENTATION
+						# / ro.surface_flinger.primary_display_orientation
+						set_property ro.boot.hwrotation "$SET_TOUCHSCREEN_ROTATION"
+						;;
 					SET_OVERRIDE_FORCED_ORIENT=*)
 						set_property config.override_forced_orient "$SET_OVERRIDE_FORCED_ORIENT"
 						;;
@@ -1560,6 +1568,15 @@ for c in `cat /proc/cmdline`; do
 						# 2.middle_port: if a portrait apk, will show in the middle of the screen, left and right will show black
 						# 3.original: original orientation, if a portrait apk, will rotate 270 degree
 						set_property persist.sys.app.rotation "$SET_SYS_APP_ROTATION"
+						;;
+					SET_PRIMARY_DISPLAY_ORIENTATION=*)
+						# property: ro.surface_flinger.primary_display_orientation has three cases:
+						# ORIENTATION_0, ORIENTATION_90, ORIENTATION_180, ORIENTATION_270
+						set_property ro.surface_flinger.primary_display_orientation "$SET_PRIMARY_DISPLAY_ORIENTATION"
+						;;
+					SET_SECONDARY_DISPLAY_ORIENTATION=*)
+						# Set target orientation for external displays (0=0, 1=90, 2=180, 3-270)
+						setprop ro.boot.android.force_rotation_on_external_displays "$SET_SECONDARY_DISPLAY_ORIENTATION"
 						;;
 					# Battery Stats
 					SET_FAKE_BATTERY_LEVEL=*)
