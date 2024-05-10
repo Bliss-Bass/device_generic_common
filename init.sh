@@ -625,6 +625,28 @@ function init_hal_sensors()
     else
         # if we have sensor module for our hardware, use it
         ro_hardware=$(getprop ro.hardware)
+		ro_hwrotation=$(getprop ro.boot.hwrotation)
+		if [ ! -z "$ro_hwrotation" ]; then
+			# For landscape mode:
+			# persist.demo.hdmirotation=landscape
+			# ro.sf.hwrotation=0
+			# config.override_forced_orient=flase
+
+			# For portrait mode:
+			# persist.demo.hdmirotation=portrait
+			# ro.sf.hwrotation=90 or 270
+			# config.override_forced_orient=true
+
+			if [ "$ro_hwrotation" == "90" ] || [ "$ro_hwrotation" == "270" ]; then
+				set_property ro.override_forced_orient true
+				set_property persist.demo.hdmirotation portrait
+			else
+				set_property ro.override_forced_orient false
+				set_property persist.demo.hdmirotation landscape
+			fi
+			set_property ro.sf.hwrotation=${ro_hwrotation}
+
+		fi
         [ -f /system/lib/hw/sensors.${ro_hardware}.so ] && return 0
 
         local hal_sensors=kbd
