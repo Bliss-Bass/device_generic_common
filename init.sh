@@ -710,6 +710,55 @@ function init_hal_sensors()
             fi
     fi
 
+
+	for c in `cat /proc/cmdline`; do
+		case $c in
+			*=*)
+				eval $c
+				if [ -z "$1" ]; then
+					case $c in
+						SET_HDMI_ROTATION=*)
+							# Set HDMI rotation (portrait, landscape)
+							set_property persist.demo.hdmirotation "$SET_HDMI_ROTATION"
+							;;
+						SET_PER_WINDOW_INPUT_ROTATION=*)
+							# Set per window input rotation on/off (true, false)
+							set_property persist.debug.per_window_input_rotation "$SET_PER_WINDOW_INPUT_ROTATION"
+							;;
+						SET_SF_ROTATION=*)
+							set_property ro.sf.hwrotation "$SET_SF_ROTATION"
+							;;
+						SET_TOUCHSCREEN_ROTATION=*)
+							# property: ro.boot.hwrotation has four cases:
+							# 0, 90, 180, 270
+							#
+							# This property will also trigger SET_PRIMARY_DISPLAY_ORIENTATION
+							# / ro.surface_flinger.primary_display_orientation
+							set_property ro.boot.hwrotation "$SET_TOUCHSCREEN_ROTATION"
+							;;
+						SET_OVERRIDE_FORCED_ORIENT=*)
+							set_property config.override_forced_orient "$SET_OVERRIDE_FORCED_ORIENT"
+							;;
+						SET_SYS_APP_ROTATION=*)
+							# property: persist.sys.app.rotation has three cases:
+							# 1.force_land: always show with landscape, if a portrait apk, system will scale up it
+							# 2.middle_port: if a portrait apk, will show in the middle of the screen, left and right will show black
+							# 3.original: original orientation, if a portrait apk, will rotate 270 degree
+							set_property persist.sys.app.rotation "$SET_SYS_APP_ROTATION"
+							;;
+						SET_PRIMARY_DISPLAY_ORIENTATION=*)
+							# property: ro.surface_flinger.primary_display_orientation has three cases:
+							# ORIENTATION_0, ORIENTATION_90, ORIENTATION_180, ORIENTATION_270
+							set_property ro.surface_flinger.primary_display_orientation "$SET_PRIMARY_DISPLAY_ORIENTATION"
+							;;
+					esac
+				fi
+				;;
+		esac
+	done
+
+					
+
     set_property ro.iio.accel.quirks "no-trig,no-event"
     set_property ro.iio.anglvel.quirks "no-trig,no-event"
     set_property ro.iio.magn.quirks "no-trig,no-event"
@@ -1559,32 +1608,6 @@ for c in `cat /proc/cmdline`; do
 						# set power off double click
 						# options: true,false
 						set_property poweroff.doubleclick "$PWR_OFF_DBLCLK"
-						;;
-					SET_SF_ROTATION=*)
-						set_property ro.sf.hwrotation "$SET_SF_ROTATION"
-						;;
-					SET_TOUCHSCREEN_ROTATION=*)
-						# property: ro.boot.hwrotation has four cases:
-						# 0, 90, 180, 270
-						#
-						# This property will also trigger SET_PRIMARY_DISPLAY_ORIENTATION
-						# / ro.surface_flinger.primary_display_orientation
-						set_property ro.boot.hwrotation "$SET_TOUCHSCREEN_ROTATION"
-						;;
-					SET_OVERRIDE_FORCED_ORIENT=*)
-						set_property config.override_forced_orient "$SET_OVERRIDE_FORCED_ORIENT"
-						;;
-					SET_SYS_APP_ROTATION=*)
-						# property: persist.sys.app.rotation has three cases:
-						# 1.force_land: always show with landscape, if a portrait apk, system will scale up it
-						# 2.middle_port: if a portrait apk, will show in the middle of the screen, left and right will show black
-						# 3.original: original orientation, if a portrait apk, will rotate 270 degree
-						set_property persist.sys.app.rotation "$SET_SYS_APP_ROTATION"
-						;;
-					SET_PRIMARY_DISPLAY_ORIENTATION=*)
-						# property: ro.surface_flinger.primary_display_orientation has three cases:
-						# ORIENTATION_0, ORIENTATION_90, ORIENTATION_180, ORIENTATION_270
-						set_property ro.surface_flinger.primary_display_orientation "$SET_PRIMARY_DISPLAY_ORIENTATION"
 						;;
 					SET_SECONDARY_DISPLAY_ORIENTATION=*)
 						# Set target orientation for external displays (0=0, 1=90, 2=180, 3-270)
