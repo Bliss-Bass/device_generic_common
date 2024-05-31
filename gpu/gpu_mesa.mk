@@ -21,7 +21,6 @@ PRODUCT_PACKAGES := \
     vulkan.amd \
     vulkan.virtio \
     vulkan.swrast \
-    vulkan.nouveau-experimental \
     libEGL_angle \
     libGLESv1_CM_angle \
     libGLESv2_angle \
