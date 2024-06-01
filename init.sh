@@ -30,6 +30,8 @@ function init_misc()
 	# in case no cpu governor driver autoloads
 	[ -d /sys/devices/system/cpu/cpu0/cpufreq ] || modprobe acpi-cpufreq
 
+	init_misc_cpu
+
 	# enable sdcardfs if /data is not mounted on tmpfs or 9p
 	#mount | grep /data\ | grep -qE 'tmpfs|9p'
 	#[ $? -eq 0 ] && set_prop_if_empty ro.sys.sdcardfs false
@@ -1361,6 +1363,40 @@ function set_package_opts()
         esac
     done
 	
+}
+
+function init_misc_cpu()
+{
+	# Allow for adjusting intel_pstate max/min freq on boot
+	if [ -n "$INTEL_PSTATE_CPU_MIN_PERF_PCT"  ]; then
+		echo $INTEL_PSTATE_CPU_MIN_PERF_PCT > /sys/devices/system/cpu/intel_pstate/min_perf_pct
+	fi
+	
+	if [ -n "$INTEL_PSTATE_CPU_MAX_PERF_PCT"  ]; then
+		echo $INTEL_PSTATE_CPU_MAX_PERF_PCT > /sys/devices/system/cpu/intel_pstate/max_perf_pct
+	fi
+
+	# Allow for adjusting cpu energy performance
+	# Normal options: default, performance, balance_performance, balance_power, power
+	if [ -n "$CPU_ENERGY_PERFORMANCE_PREF"  ]; then
+
+		cpuprefavailable=$(cat /sys/devices/system/cpu/cpu0/cpufreq/energy_performance_available_preferences)
+		
+		# if the word "CPU_ENERGY_PERFORMANCE_PREF" is found in the $cpuprefavailable string, then set the options for all cpus
+		if [[ "$cpuprefavailable" == *"$CPU_ENERGY_PERFORMANCE_PREF"* ]]; then
+			for cpu in $(ls -d /sys/devices/system/cpu/cpu?); do
+				echo $CPU_ENERGY_PERFORMANCE_PREF > $cpu/cpufreq/energy_performance_preference || return 1
+			done
+		fi
+
+	fi
+
+	# Set cpu scaling at boot (ie set pstate status to active/passive at boot)
+	if [ -n "$INTEL_PSTATE_STATUS"  ]; then
+		echo $INTEL_PSTATE_STATUS > /sys/devices/system/cpu/intel_pstate/status
+	else
+		echo passive > /sys/devices/system/cpu/intel_pstate/status
+	fi
 }
 
 function do_init()
