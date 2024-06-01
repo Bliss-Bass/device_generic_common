@@ -672,6 +672,57 @@ function init_hal_sensors()
             fi
     fi
 
+	for c in `cat /proc/cmdline`; do
+		case $c in
+			*=*)
+				eval $c
+				if [ -z "$1" ]; then
+					case $c in
+						SET_HDMI_ROTATION=*)
+							# Set HDMI rotation (portrait, landscape)
+							set_property persist.demo.hdmirotation "$SET_HDMI_ROTATION"
+							;;
+						SET_PER_WINDOW_INPUT_ROTATION=*)
+							# Set per window input rotation on/off (true, false)
+							set_property persist.debug.per_window_input_rotation "$SET_PER_WINDOW_INPUT_ROTATION"
+							;;
+						SET_SF_ROTATION=*)
+							set_property ro.sf.hwrotation "$SET_SF_ROTATION"
+							;;
+						SET_TOUCHSCREEN_ROTATION=*)
+							# property: ro.boot.hwrotation has four cases:
+							# 0, 90, 180, 270
+							#
+							# This property will also trigger SET_PRIMARY_DISPLAY_ORIENTATION
+							# / ro.surface_flinger.primary_display_orientation
+							set_property ro.boot.hwrotation "$SET_TOUCHSCREEN_ROTATION"
+							;;
+						SET_ROTATION_ON_INTERNAL_DISPLAY=*)
+							# property: ro.boot.android.force_rotation_on_internal_displays has four cases:
+							# 0, 90, 180, 270
+							set_property ro.boot.android.force_rotation_on_internal_displays "$SET_ROTATION_ON_INTERNAL_DISPLAY"
+							;;
+						SET_OVERRIDE_FORCED_ORIENT=*)
+							set_property config.override_forced_orient "$SET_OVERRIDE_FORCED_ORIENT"
+							;;
+						SET_SYS_APP_ROTATION=*)
+							# property: persist.sys.app.rotation has three cases:
+							# 1.force_land: always show with landscape, if a portrait apk, system will scale up it
+							# 2.middle_port: if a portrait apk, will show in the middle of the screen, left and right will show black
+							# 3.original: original orientation, if a portrait apk, will rotate 270 degree
+							set_property persist.sys.app.rotation "$SET_SYS_APP_ROTATION"
+							;;
+						SET_PRIMARY_DISPLAY_ORIENTATION=*)
+							# property: ro.surface_flinger.primary_display_orientation has three cases:
+							# ORIENTATION_0, ORIENTATION_90, ORIENTATION_180, ORIENTATION_270
+							set_property ro.surface_flinger.primary_display_orientation "$SET_PRIMARY_DISPLAY_ORIENTATION"
+							;;
+					esac
+				fi
+				;;
+		esac
+	done
+
     set_property ro.iio.accel.quirks "no-trig,no-event"
     set_property ro.iio.anglvel.quirks "no-trig,no-event"
     set_property ro.iio.magn.quirks "no-trig,no-event"
@@ -1552,19 +1603,6 @@ for c in `cat /proc/cmdline`; do
 					DPI=*)
 						set_property ro.sf.lcd_density "$DPI"
 						;;
-					SET_SF_ROTATION=*)
-						set_property ro.sf.hwrotation "$SET_SF_ROTATION"
-						;;
-					SET_OVERRIDE_FORCED_ORIENT=*)
-						set_property config.override_forced_orient "$SET_OVERRIDE_FORCED_ORIENT"
-						;;
-					SET_SYS_APP_ROTATION=*)
-						# property: persist.sys.app.rotation has three cases:
-						# 1.force_land: always show with landscape, if a portrait apk, system will scale up it
-						# 2.middle_port: if a portrait apk, will show in the middle of the screen, left and right will show black
-						# 3.original: original orientation, if a portrait apk, will rotate 270 degree
-						set_property persist.sys.app.rotation "$SET_SYS_APP_ROTATION"
-						;;
 					# Battery Stats
 					SET_FAKE_BATTERY_LEVEL=*)
 						# Let us fake the total battery percentage
@@ -1600,6 +1638,70 @@ for c in `cat /proc/cmdline`; do
 						# Force disable recents
 						# options: true, false
 						set_property persist.bliss.disable_recents "$FORCE_DISABLE_RECENTS"
+						;;					
+					SET_LOGCAT_DEBUG=*)
+						set_property debug.logcat "$SET_LOGCAT_DEBUG"
+						;;
+					SUSPEND_TYPE=*)
+						# Override auto-detected power suspend type
+						# options: (https://www.kernel.org/doc/Documentation/power/interface.txt)
+						# 	'freeze' (Suspend-to-Idle)
+						# 	'standby' (Power-On Suspend)
+						# 	'mem' (Suspend-to-RAM)
+						# 	'disk' (Suspend-to-Disk)
+						set_property sleep.state "$SUSPEND_TYPE"
+						;;
+					PWR_OFF_DBLCLK=*)
+						# set power off double click
+						# options: true,false
+						set_property poweroff.doubleclick "$PWR_OFF_DBLCLK"
+						;;
+					SET_USB_BUS_PORTS=*)
+						# Set USB bus ports
+						# Example: SET_USB_BUS_PORTS=001/001,001/002,001/003,001/004
+						genports="${SET_USB_BUS_PORTS#*=}"
+						genports_array=($(echo $gentty | sed 's/,/ /g' | xargs))
+						# loop through each option
+						for port in "${genports_array[@]}"; do
+							chown system:system /dev/bus/usb/$port
+							chmod 666 /dev/bus/usb/$port
+						done
+						;;
+					SET_TTY_PORT_PERMS=*)
+						# Sets permissions for tty ports 
+						# Example: SET_TTY_PORT_PERMS=ttyS0,ttyS1,ttyS2
+						gentty="${SET_TTY_PORT_PERMS#*=}"
+						gentty_array=($(echo $gentty | sed 's/,/ /g' | xargs))
+						# loop through each option
+						for tport in "${gentty_array[@]}"; do
+							# chown system:system /dev/$tport
+							chmod 666 /dev/$tport
+						done
+						;;
+					FORCE_HIDE_NAVBAR_WINDOW=*)
+						# Force hide navigation bar window
+						# options: 0, 1
+						set_property persist.wm.debug.hide_navbar_window "$FORCE_HIDE_NAVBAR_WINDOW"
+						;;
+					FORCE_HW_TIMEOUT_MULTIPLIER=*)
+						# Force hw timeout multiplier, # X 5s
+						# options: (integer)
+						set_property ro.hw_timeout_multiplier "$FORCE_HW_TIMEOUT_MULTIPLIER"
+						;;
+					BOOT_FACTORY_TEST=*)
+						# Boot into factory test mode
+						# options: 0, 1
+						set_property ro.factorytest "$BOOT_FACTORY_MODE"
+						;;
+					FORCE_NAVBAR_ON_SECONDARY_DISPLAYS=*)
+						# Force navigation bar on secondary displays
+						# options: 0, 1
+						set_property ro.boot.force.navbar_on_secondary_displays "$FORCE_NAVBAR_ON_SECONDARY_DISPLAYS"
+						;;
+					FORCE_IME_ON_SECONDARY_DISPLAYS=*)
+						# Force IME on secondary displays
+						# options: 0, 1
+						set_property ro.boot.bliss.force_ime_on_all_displays "$FORCE_IME_ON_SECONDARY_DISPLAYS"
 						;;
 				esac
 				[ "$SETUPWIZARD" = "0" ] && set_property ro.setupwizard.mode DISABLED
