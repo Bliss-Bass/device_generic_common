@@ -551,7 +551,18 @@ function init_hal_power()
 			;;
 	esac
 
-	set_property sleep.state ${SLEEP_STATE}
+	# Detect is deep sleep is supported and auto set sleep.state parameter
+	mem_sleep_default=$(cat /sys/power/mem_sleep)
+	if [[ "$mem_sleep_default" == *deep* ]]; then
+		setprop sleep.state ${SLEEP_STATE:-mem}
+	else
+		setprop sleep.state ${SLEEP_STATE:-freeze}
+	fi
+
+	current_sleep_state=$(getprop sleep.state)
+	if [ "${current_sleep_state}" = "mem" ]; then
+		echo "deep" > /sys/power/mem_sleep
+	fi
 }
 
 function init_hal_thermal()
