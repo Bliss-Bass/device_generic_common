@@ -308,7 +308,7 @@ $(call inherit-product-if-exists, vendor/boringdroid/boringdroid.mk)
 
 # Enable MultiWindow
 PRODUCT_PROPERTY_OVERRIDES += \
-    persist.sys.debug.multi_window=true
+    persist.sys.debug.multi_window=true \
     persist.sys.debug.desktop_mode=true
 
 # DRM service opt-in
