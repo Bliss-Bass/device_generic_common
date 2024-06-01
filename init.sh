@@ -937,6 +937,46 @@ function set_max_logd()
 	
 }
 
+# Allow iio options to be passed through cmdline
+function set_iio_options()
+{
+	# Set up usb/adb props when values are detected in /proc/cmdline
+	
+	for c in `cat /proc/cmdline`; do
+		case $c in
+			*=*)
+				eval $c
+				if [ -z "$1" ]; then
+					case $c in
+						SET_IIO_ORDER=*)
+							set_property ro.iio.accel.order "$SET_IIO_ORDER"
+							;;
+						SET_IIO_ACCEL_QUIRKS=*)
+							set_property ro.iio.accel.quirks "$SET_IIO_ACCEL_QUIRKS"
+							;;
+						SET_IIO_ACCEL_X_OPT_SCALE=*)
+							set_property ro.iio.accel.x.opt_scale "$SET_IIO_ACCEL_X_OPT_SCALE"
+							;;
+						SET_IIO_ACCEL_Y_OPT_SCALE=*)
+							set_property ro.iio.accel.y.opt_scale "$SET_IIO_ACCEL_Y_OPT_SCALE"
+							;;
+						SET_IIO_ANGLVEL_QUIRKS=*)
+							set_property ro.iio.anglvel.quirks "$SET_IIO_ANGLVEL_QUIRKS"
+							;;
+						SET_IGNORE_ATKBD=*)
+							# (0,1) 0=off, 1=on
+							set_property ro.ignore_atkbd "$SET_IGNORE_ATKBD"
+							;;
+						SET_IIO_MAGN_QUIRKS=*)
+							set_property ro.iio.magn.quirks "$SET_IIO_MAGN_QUIRKS"
+							;;
+					esac
+				fi
+				;;
+		esac
+	done
+}
+
 function do_init()
 {
 	init_misc
@@ -958,6 +998,7 @@ function do_init()
 	init_hal_thermal
 	init_hal_sensors
 	init_hal_surface
+	set_iio_options
 	init_tscal
 	init_ril
 	init_loop_links
