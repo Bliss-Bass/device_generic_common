@@ -1313,6 +1313,56 @@ function set_custom_settings()
 	
 }
 
+function set_package_opts()
+{
+	# Set generic package options
+	# Example: HIDE_APPS="com.android.settings,com.aurora.services,com.termux,com.android.vending"
+	# 		   UNHIDE_APPS="com.android.settings,com.aurora.services,com.termux,com.android.vending"
+	#		   DISABLE_APPS="com.aurora.services,com.android.contacts,com.android.dialer"
+	# 		   ENABLE_APPS="com.aurora.services,com.android.contacts,com.android.dialer,com.android.messaging"
+	# 
+	# Note: Be careful about what apps you disable, enable or hide. Some apps are required for other
+	# functions, like org.zeroxlab.util.tscal while others can not be disabled and only hidden, 
+	# like com.android.settings
+	for c in `cat /proc/cmdline`; do
+        case $c in
+            *=*)
+                eval $c
+                if [ -z "$1" ]; then
+                    case $c in
+                        HIDE_APPS=*)
+                            hapackages="${HIDE_APPS#*=}"
+							hapackage_array=($(echo $hapackages | sed 's/,/ /g' | xargs))
+                            for hapackage in "${hapackage_array[@]}"; do
+								if [ ! -f /data/misc/bbconfig/$hapackage ]; then
+									echo "HIDE_APPS: $hapackage"
+									pm hide $hapackage
+									sleep 1
+									mkdir -p /data/misc/bbconfig
+									touch /data/misc/bbconfig/$hapackage
+								fi
+                            done
+                            ;;
+                        RESTORE_APPS=*)
+                            rapackages="${RESTORE_APPS#*=}"
+							rapackage_array=($(echo $rapackages | sed 's/,/ /g' | xargs))
+                            for rapackage in "${rapackage_array[@]}"; do
+								if [ -f /data/misc/bbconfig/$rapackage ]; then
+									echo "RESTORE_APPS: $rapackage"
+									pm unhide $rapackage
+									sleep 1
+									rm -rf /data/misc/bbconfig/$rapackage
+								fi
+                            done
+                            ;;
+                    esac
+                fi
+                ;;
+        esac
+    done
+	
+}
+
 function do_init()
 {
 	init_misc
@@ -1410,6 +1460,7 @@ function do_bootcomplete()
 	fi
 
 	set_custom_settings
+	set_package_opts
 
 	post_bootcomplete
 }
