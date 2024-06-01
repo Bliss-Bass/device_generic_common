@@ -1246,6 +1246,73 @@ function set_custom_package_perms()
 
 }
 
+function set_custom_settings()
+{
+	# Set generic device settings
+	# Example: SET_SCREEN_OFF_TIMEOUT=1800000 # 30 minutes 
+	# 		   SET_SLEEP_TIMEOUT=86400000 # 1 day
+	#
+	for c in `cat /proc/cmdline`; do
+        case $c in
+            *=*)
+                eval $c
+                if [ -z "$1" ]; then
+                    case $c in
+						SET_SCREEN_OFF_TIMEOUT=*)
+							# Set screen off timeout
+							# options: integer in milliseconds
+							settings put system screen_off_timeout "$SET_SCREEN_OFF_TIMEOUT"
+							;;
+						SET_SLEEP_TIMEOUT=*)
+							# Set screen sleep timeout
+							# options: integer in milliseconds
+							settings put system sleep_timeout "$SET_SLEEP_TIMEOUT"
+							;;
+						SET_POWER_ALWAYS_ON=*)
+							# Set power always on
+							# options: true or false
+							svc power stayon "$SET_POWER_ALWAYS_ON"
+							;;
+						SET_STAY_ON_WHILE_PLUGGED_IN=*)
+							# Set stay on while plugged in
+							# options: true or false
+							settings put global stay_on_while_plugged_in "$SET_STAY_ON_WHILE_PLUGGED_IN"
+							;;
+						FORCE_BLUETOOTH_SERVICE=*)
+							# Set force bluetooth service state
+							# options: enable, disable
+							pm "$FORCE_BLUETOOTH_SERVICE" com.android.bluetooth
+							svc bluetooth "$FORCE_BLUETOOTH_SERVICE"
+							;;
+						FORCE_DISABLE_ALL_RADIOS=1)
+							# Set force disable all radios
+							settings put global airplane_mode_radios cell,wifi,bluetooth,nfc,wimax
+							settings put global airplane_mode_toggleable_radios ""
+							settings put secure sysui_qs_tiles "rotation,caffeine,$(settings get secure sysui_qs_tiles)"
+							cmd connectivity airplane-mode enable
+							;;
+						FORCE_DESKTOP_ON_EXTERNAL=*)
+							# Enable desktop mode on external display (required for MultiDisplay Input)
+							if [ "$FORCE_DESKTOP_ON_EXTERNAL" == "0" ]; then
+								settings put global force_desktop_mode_on_external_displays ""
+								settings put global force_allow_on_external ""
+							else
+								settings put global force_desktop_mode_on_external_displays 1
+								settings put global force_allow_on_external 1
+							fi
+							;;
+						FORCE_USE_ADB_CLIENT_MODE=3)
+							settings put glogal adb_enabled 1
+							settings put global adb_wifi_enabled 1 
+							;;
+                    esac
+                fi
+                ;;
+        esac
+    done
+	
+}
+
 function do_init()
 {
 	init_misc
@@ -1341,6 +1408,8 @@ function do_bootcomplete()
 	if [ ! "$(getprop ro.boot.slot_suffix)" ]; then
 		pm disable org.lineageos.updater
 	fi
+
+	set_custom_settings
 
 	post_bootcomplete
 }
