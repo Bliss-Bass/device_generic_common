@@ -1514,6 +1514,8 @@ function do_bootcomplete()
 	#/system/bin xtr.keymapper.server.InputService > /dev/null 2>&1 &
 
 	if [ ! "$(getprop ro.boot.slot_suffix)" ]; then
+		pm disable com.blissos.updater
+		pm disable com.blissroms.updater
 		pm disable org.lineageos.updater
 	fi
 
