@@ -1056,8 +1056,6 @@ function set_custom_package_perms()
 {
 	# Set up custom package permissions
 
-	current_user=$(dumpsys activity | grep mCurrentUserId | cut -d: -f2)
-
 	# KioskLauncher
 	exists_kiosk=$(pm list packages org.blissos.kiosklauncher | grep -c org.blissos.kiosklauncher)
 	if [ $exists_kiosk -eq 1 ]; then
@@ -1197,22 +1195,22 @@ function set_custom_package_perms()
 		pm grant cu.axel.smartdock android.permission.PACKAGE_USAGE_STATS
 		pm grant cu.axel.smartdock android.permission.QUERY_ALL_PACKAGES
 		pm grant cu.axel.smartdock android.permission.WRITE_SECURE_SETTINGS
-		pm grant --user $current_user cu.axel.smartdock android.permission.WRITE_SECURE_SETTINGS
+		pm grant --user 0 cu.axel.smartdock android.permission.WRITE_SECURE_SETTINGS
 		appops set cu.axel.smartdock WRITE_SECURE_SETTINGS allow
 		pm grant cu.axel.smartdock android.permission.WRITE_SETTINGS
-		pm grant --user $current_user cu.axel.smartdock android.permission.WRITE_SETTINGS
+		pm grant --user 0 cu.axel.smartdock android.permission.WRITE_SETTINGS
 		appops set cu.axel.smartdock WRITE_SETTINGS allow
 		pm grant cu.axel.smartdock android.permission.BIND_ACCESSIBILITY_SERVICE
-		pm grant --user $current_user cu.axel.smartdock android.permission.BIND_ACCESSIBILITY_SERVICE
+		pm grant --user 0 cu.axel.smartdock android.permission.BIND_ACCESSIBILITY_SERVICE
 		appops set cu.axel.smartdock BIND_ACCESSIBILITY_SERVICE allow
 		pm grant cu.axel.smartdock android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
-		pm grant --user $current_user cu.axel.smartdock android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
+		pm grant --user 0 cu.axel.smartdock android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
 		appops set cu.axel.smartdock BIND_NOTIFICATION_LISTENER_SERVICE allow
 		pm grant cu.axel.smartdock android.permission.BIND_DEVICE_ADMIN
-		pm grant --user $current_user cu.axel.smartdock android.permission.BIND_DEVICE_ADMIN
+		pm grant --user 0 cu.axel.smartdock android.permission.BIND_DEVICE_ADMIN
 		appops set cu.axel.smartdock BIND_DEVICE_ADMIN allow
 		pm grant cu.axel.smartdock android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-		pm grant --user $current_user cu.axel.smartdock android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+		pm grant --user 0 cu.axel.smartdock android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 
 		# set overlays enabled
 		settings put secure secure_overlay_settings 1
@@ -1275,16 +1273,16 @@ function set_custom_package_perms()
 	exists_taskbar=$(pm list packages com.farmerbb.taskbar | grep -c com.farmerbb.taskbar)
 	if [ $exists_taskbar -eq 1 ]; then
 		pm grant com.farmerbb.taskbar android.permission.PACKAGE_USAGE_STATS
-		pm grant --user $current_user com.farmerbb.taskbar android.permission.WRITE_SECURE_SETTINGS
+		pm grant --user 0 com.farmerbb.taskbar android.permission.WRITE_SECURE_SETTINGS
 		appops set com.farmerbb.taskbar BIND_DEVICE_ADMIN allow
 		pm grant com.farmerbb.taskbar android.permission.GET_TASKS
 		pm grant com.farmerbb.taskbar android.permission.BIND_CONTROLS
 		pm grant com.farmerbb.taskbar android.permission.BIND_INPUT_METHOD
 		pm grant com.farmerbb.taskbar android.permission.BIND_QUICK_SETTINGS_TILE
 		pm grant com.farmerbb.taskbar android.permission.REBOOT
-		pm grant --user $current_user com.farmerbb.taskbar android.permission.BIND_ACCESSIBILITY_SERVICE
+		pm grant --user 0 com.farmerbb.taskbar android.permission.BIND_ACCESSIBILITY_SERVICE
 		appops set com.farmerbb.taskbar BIND_ACCESSIBILITY_SERVICE allow
-		pm grant --user $current_user com.farmerbb.taskbar android.permission.MANAGE_OVERLAY_PERMISSION
+		pm grant --user 0 com.farmerbb.taskbar android.permission.MANAGE_OVERLAY_PERMISSION
 		appops set com.farmerbb.taskbar MANAGE_OVERLAY_PERMISSION allow
 		pm grant com.farmerbb.taskbar android.permission.SYSTEM_ALERT_WINDOW
 		pm grant com.farmerbb.taskbar android.permission.USE_FULL_SCREEN_INTENT
@@ -1302,19 +1300,19 @@ function set_custom_package_perms()
 			pm grant com.google.android.gms android.permission.READ_EXTERNAL_STORAGE
 			pm grant com.google.android.gms android.permission.ACCESS_BACKGROUND_LOCATION
 			pm grant com.google.android.gms android.permission.ACCESS_COARSE_UPDATES
-			pm grant --user $current_user com.google.android.gms android.permission.FAKE_PACKAGE_SIGNATURE
+			pm grant --user 0 com.google.android.gms android.permission.FAKE_PACKAGE_SIGNATURE
 			appops set com.google.android.gms android.permission.FAKE_PACKAGE_SIGNATURE
-			pm grant --user $current_user com.google.android.gms android.permission.MICROG_SPOOF_SIGNATURE
+			pm grant --user 0 com.google.android.gms android.permission.MICROG_SPOOF_SIGNATURE
 			appops set com.google.android.gms android.permission.MICROG_SPOOF_SIGNATURE
-			pm grant --user $current_user com.google.android.gms android.permission.WRITE_SECURE_SETTINGS
+			pm grant --user 0 com.google.android.gms android.permission.WRITE_SECURE_SETTINGS
 			appops set com.google.android.gms android.permission.WRITE_SECURE_SETTINGS
 			pm grant com.google.android.gms android.permission.SYSTEM_ALERT_WINDOW
-			pm grant --user $current_user com.google.android.gms android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+			pm grant --user 0 com.google.android.gms android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 			appops set com.google.android.gms android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 		fi
 		exists_vending=$(pm list packages com.google.android.vending | grep -c com.google.android.vending)
 		if [ $exists_vending -eq 1 ]; then
-			pm grant --user $current_user com.google.android.vending android.permission.FAKE_PACKAGE_SIGNATURE
+			pm grant --user 0 com.google.android.vending android.permission.FAKE_PACKAGE_SIGNATURE
 			appops set com.google.android.vending android.permission.FAKE_PACKAGE_SIGNATURE
 		fi
 	fi
@@ -1510,8 +1508,6 @@ function do_bootcomplete()
 {
 	hciconfig | grep -q hci || pm disable com.android.bluetooth
 
-	set_custom_package_perms
-
 	init_cpu_governor
 
 	[ -z "$(getprop persist.sys.root_access)" ] && setprop persist.sys.root_access 3
@@ -1563,6 +1559,8 @@ function do_bootcomplete()
 	#nohup env LD_LIBRARY_PATH=$(echo /data/app/*/xtr.keymapper*/lib/x86_64) \
 	#CLASSPATH=$(echo /data/app/*/xtr.keymapper*/base.apk) /system/bin/app_process \
 	#/system/bin xtr.keymapper.server.InputService > /dev/null 2>&1 &
+
+	set_custom_package_perms
 
 	if [ ! "$(getprop ro.boot.slot_suffix)" ]; then
 		pm disable com.blissos.updater
