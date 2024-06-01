@@ -544,6 +544,9 @@ function init_hal_power()
 		e-tab*Pro)
 			SLEEP_STATE=force
 			;;
+		*TAIFAElimuTab*)
+			setprop sleep.earlysuspend 1
+			;;
 		*)
 			;;
 	esac
