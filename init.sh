@@ -1350,7 +1350,11 @@ function set_package_opts()
 									rm -rf /data/misc/bbconfig/$rapackage
 								fi
                             done
-                            ;;
+                            ;;						
+						FORCE_QUICKSTEP_HOME=*)
+							# Enable launcher3 quickstep as home
+							pm set-home-activity "com.android.launcher3/.LauncherProvider"
+							;;
                     esac
                 fi
                 ;;
