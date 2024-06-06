@@ -736,6 +736,11 @@ function init_hal_sensors()
 							# / ro.surface_flinger.primary_display_orientation
 							set_property ro.boot.hwrotation "$SET_TOUCHSCREEN_ROTATION"
 							;;
+						SET_ROTATION_ON_INTERNAL_DISPLAY=*)
+							# property: ro.boot.android.force_rotation_on_internal_displays has four cases:
+							# 0, 90, 180, 270
+							set_property ro.boot.android.force_rotation_on_internal_displays "$SET_ROTATION_ON_INTERNAL_DISPLAY"
+							;;
 						SET_OVERRIDE_FORCED_ORIENT=*)
 							set_property config.override_forced_orient "$SET_OVERRIDE_FORCED_ORIENT"
 							;;
