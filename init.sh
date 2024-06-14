@@ -1637,7 +1637,7 @@ for c in `cat /proc/cmdline`; do
 						# Set USB bus ports
 						# Example: SET_USB_BUS_PORTS=001/001,001/002,001/003,001/004
 						genports="${SET_USB_BUS_PORTS#*=}"
-						genports_array=($(echo $gentty | sed 's/,/ /g' | xargs))
+						genports_array=($(echo $genports | sed 's/,/ /g' | xargs))
 						# loop through each option
 						for port in "${genports_array[@]}"; do
 							chown system:system /dev/bus/usb/$port
