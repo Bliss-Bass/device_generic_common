@@ -728,6 +728,9 @@ function init_hal_sensors()
 						SET_SF_ROTATION=*)
 							set_property ro.sf.hwrotation "$SET_SF_ROTATION"
 							;;
+						SET_SF_SWROTATION=*)
+							set_property ro.sf.swrotation "$SET_SF_SWROTATION"
+							;;
 						SET_TOUCHSCREEN_ROTATION=*)
 							# property: ro.boot.hwrotation has four cases:
 							# 0, 90, 180, 270
