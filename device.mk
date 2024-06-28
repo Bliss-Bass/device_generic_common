@@ -327,3 +327,9 @@ PRODUCT_VENDOR_PROPERTIES += drm.service.enabled=true
 
 PRODUCT_REQUIRES_INSECURE_EXECMEM_FOR_SWIFTSHADER := true
 
+ifeq ($(USE_LINDROID),true)
+
+$(call inherit-product, vendor/lindroid/lindroid.mk) 
+
+endif
+
