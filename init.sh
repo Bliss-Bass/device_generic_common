@@ -1073,6 +1073,20 @@ function set_custom_package_perms()
 		pm grant com.bliss.restrictedlauncher.pro android.permission.SYSTEM_ALERT_WINDOW
 		pm set-home-activity "com.bliss.restrictedlauncher.pro/com.bliss.restrictedlauncher.activities.LauncherActivity"
 		am start -a android.intent.action.MAIN -c android.intent.category.HOME
+
+		if [ -f /data/data/com.bliss.restrictedlauncher.pro/files/whitelist.lst ]; then
+			if [ ! -f /data/misc/rlpconfig/whitelist ]; then
+				echo -e "\ncom.android.printservice.recommendation" >> /data/data/com.bliss.restrictedlauncher.pro/files/whitelist.lst
+				echo -e "com.android.printspooler" >> /data/data/com.bliss.restrictedlauncher.pro/files/whitelist.lst
+				echo -e "com.android.systemui" >> /data/data/com.bliss.restrictedlauncher.pro/files/whitelist.lst
+				echo -e "com.android.packageinstaller" >> /data/data/com.bliss.restrictedlauncher.pro/files/whitelist.lst				
+				mkdir -p /data/misc/rlconfig
+				touch /data/misc/rlconfig/whitelist
+				chown 1000.1000 /data/misc/rlconfig /data/misc/rlconfig/*
+				chmod 775 /data/misc/rlconfig
+				chmod 664 /data/misc/rlconfig/whitelist
+			fi
+		fi
 	fi
 
 	# Molla Launcher
