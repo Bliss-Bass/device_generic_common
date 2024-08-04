@@ -1410,6 +1410,22 @@ function set_package_opts()
 							# Enable launcher3 quickstep as home
 							pm set-home-activity "com.android.launcher3/.LauncherProvider"
 							;;
+						SET_DI_WHITELIST=*)
+							# Set DI whitelist
+							# dumpsys deviceidle whitelist +<PACKAGE_NAME>
+                            diwlpackages="${SET_DI_WHITELIST#*=}"
+							diwlpackage_array=($(echo $diwlpackages | sed 's/,/ /g' | xargs))
+                            for diwlpackage in "${diwlpackage_array[@]}"; do
+								if [ ! -f /data/misc/bbconfig/$diwlpackage ]; then
+									echo "SET_DI_WHITELIST: $diwlpackage"
+									dumpsys deviceidle whitelist +$diwlpackage
+									sleep 1
+									mkdir -p /data/misc/bbconfig
+									mkdir -p /data/misc/bbconfig/diwhitelist
+									touch /data/misc/bbconfig/diwhitelist/$diwlpackage
+								fi
+                            done
+                            ;;
                     esac
                 fi
                 ;;
