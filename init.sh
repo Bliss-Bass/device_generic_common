@@ -759,6 +759,21 @@ function init_hal_sensors()
 							# ORIENTATION_0, ORIENTATION_90, ORIENTATION_180, ORIENTATION_270
 							set_property ro.surface_flinger.primary_display_orientation "$SET_PRIMARY_DISPLAY_ORIENTATION"
 							;;
+						SET_HDMIROTATION=*)
+							# Set HDMI rotation
+							# options: portrait, landscape
+							set_property persist.demo.hdmirotation "$SET_HDMIROTATION"
+							;;
+						SET_HDMIROTATIONLOCK=*)
+							# Set HDMI rotation lock
+							# options: true or false
+							set_property persist.demo.hdmirotationlock "$SET_HDMIROTATIONLOCK"
+							;;
+						SET_SINGLEDISPLAY=*)
+							# Set single display
+							# options: true or false
+							set_property persist.demo.singledisplay "$SET_SINGLEDISPLAY"
+							;;
 					esac
 				fi
 				;;
