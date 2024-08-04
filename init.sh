@@ -1489,6 +1489,15 @@ function set_custom_settings()
 								settings put global force_allow_on_external 1
 							fi
 							;;
+						FORCE_PRIMARY_ROTATION=*)
+							# Force primary rotation
+
+							# disable accellerometer rotation first
+							settings put system accelerometer_rotation 0
+
+							# options: 0:0, 1:90, 2:180, 3:270
+							settings put system user_rotation "$FORCE_PRIMARY_ROTATION"
+							;;
                     esac
                 fi
                 ;;
