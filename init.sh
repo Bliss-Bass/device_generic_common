@@ -801,6 +801,19 @@ function init_cpu_governor()
 	}
 }
 
+function init_cpu_scaling()
+{
+	for cpu in $(ls -d /sys/devices/system/cpu/cpu?); do
+		chown 1000.1000 $cpu/cpufreq/scaling_governor
+		chmod 0664 $cpu/cpufreq/scaling_governor
+		chown 1000.1000 $cpu/cpufreq/scaling_max_freq
+		chmod 0664 $cpu/cpufreq/scaling_max_freq
+		chown 1000.1000 $cpu/cpufreq/scaling_min_freq
+		chmod 0664 $cpu/cpufreq/scaling_min_freq
+	done
+
+}
+
 function set_lowmem()
 {
 	# 3GB size in kB : https://source.android.com/devices/tech/perf/low-ram
@@ -1438,14 +1451,33 @@ function set_package_opts()
 
 function init_misc_cpu()
 {
-	# Allow for adjusting intel_pstate max/min freq on boot
-	if [ -n "$INTEL_PSTATE_CPU_MIN_PERF_PCT"  ]; then
-		echo $INTEL_PSTATE_CPU_MIN_PERF_PCT > /sys/devices/system/cpu/intel_pstate/min_perf_pct
-	fi
-	
-	if [ -n "$INTEL_PSTATE_CPU_MAX_PERF_PCT"  ]; then
-		echo $INTEL_PSTATE_CPU_MAX_PERF_PCT > /sys/devices/system/cpu/intel_pstate/max_perf_pct
-	fi
+	for c in `cat /proc/cmdline`; do
+        case $c in
+            *=*)
+                eval $c
+                if [ -z "$1" ]; then
+                    case $c in
+                        INTEL_PSTATE_CPU_MIN_PERF_PCT=*)
+							# Allow for adjusting intel_pstate max/min freq on boot
+                            echo $INTEL_PSTATE_CPU_MIN_PERF_PCT > /sys/devices/system/cpu/intel_pstate/min_perf_pct
+                            ;;
+                        INTEL_PSTATE_CPU_MAX_PERF_PCT=*)
+							# Allow for adjusting intel_pstate max/min freq on boot
+                            echo $INTEL_PSTATE_CPU_MAX_PERF_PCT > /sys/devices/system/cpu/intel_pstate/max_perf_pct
+                            ;;
+						INTEL_PSTATE_STATUS=*)
+							# Set cpu scaling at boot (ie set pstate status to active/passive at boot)
+							echo $INTEL_PSTATE_STATUS > /sys/devices/system/cpu/intel_pstate/status
+							;;
+						INTEL_PSTATE_NO_TURBO=*)
+							# Force no turbo at boot
+							echo $INTEL_PSTATE_NO_TURBO > /sys/devices/system/cpu/intel_pstate/no_turbo
+							;;
+                    esac
+                fi
+                ;;
+        esac
+    done
 
 	# Allow for adjusting cpu energy performance
 	# Normal options: default, performance, balance_performance, balance_power, power
@@ -1462,10 +1494,7 @@ function init_misc_cpu()
 
 	fi
 
-	# Set cpu scaling at boot (ie set pstate status to active/passive at boot)
-	if [ -n "$INTEL_PSTATE_STATUS"  ]; then
-		echo $INTEL_PSTATE_STATUS > /sys/devices/system/cpu/intel_pstate/status
-	else
+	if [ -z "$INTEL_PSTATE_STATUS"  ]; then
 		echo passive > /sys/devices/system/cpu/intel_pstate/status
 	fi
 }
@@ -1509,6 +1538,7 @@ function do_bootcomplete()
 	hciconfig | grep -q hci || pm disable com.android.bluetooth
 
 	init_cpu_governor
+	init_cpu_scaling
 
 	[ -z "$(getprop persist.sys.root_access)" ] && setprop persist.sys.root_access 3
 

@@ -56,6 +56,10 @@ on post-fs-data
     # Set indication (checked by vold) that we have finished this action
     setprop vold.post_fs_data_done 1
 
+    # Communicate with mpdecision and thermald
+    mkdir /dev/socket/mpdecision 0770 system system
+    chmod 2770 /dev/socket/mpdecision
+
     setprop persist.vendor.thermal.mode thermal-daemon
     mkdir /data/vendor/thermal-daemon 0660 system system
 
@@ -76,6 +80,32 @@ on boot
     setprop persist.sys.strictmode.disable 1
     # workaround for h.265 slowness
     setprop sys.media.vdec.drop 0
+
+	# Allow setting thermal zone policy
+	chown system system /sys/class/thermal/thermal_zone0/policy
+    chown system system /sys/class/thermal/thermal_zone1/policy
+    chown system system /sys/class/thermal/thermal_zone2/policy
+
+	## Little gov
+    chmod 0644 /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+    write /sys/devices/system/cpu/cpufreq/policy0/scaling_governor schedutil
+    ## Little min freq
+    chmod 0644 /sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq
+    ## Little max freq
+    chmod 0644 /sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq
+    ## Little gov Setting
+    chown system system /sys/devices/system/cpu/cpufreq/policy0/schedutil/*
+    chmod 0644 /sys/devices/system/cpu/cpufreq/policy0/schedutil/*
+    ## Big gov
+    chmod 0644 /sys/devices/system/cpu/cpufreq/policy4/scaling_governor
+    write /sys/devices/system/cpu/cpufreq/policy4/scaling_governor schedutil
+    ## Big min freq
+    chmod 0644 /sys/devices/system/cpu/cpufreq/policy4/scaling_min_freq
+    ## Big max freq
+    chmod 0644 /sys/devices/system/cpu/cpufreq/policy4/scaling_max_freq
+	## Big gov Setting
+    chown system system /sys/devices/system/cpu/cpufreq/policy4/schedutil/*
+    chmod 0644 /sys/devices/system/cpu/cpufreq/policy4/schedutil/*
 
     #Celadon thermal HAL
     chown system system /sys/devices/system/cpu/intel_pstate/max_perf_pct
