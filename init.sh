@@ -1027,6 +1027,38 @@ function set_custom_package_perms()
 		fi
 	fi
 
+	# Vapor Launcher
+	exists_vaporlauncher=$(pm list packages org.vapor.android | grep -c org.vapor.android)
+	if [ $exists_vaporlauncher -eq 1 ]; then
+		if [ ! -f /data/misc/vlconfig/config ]; then
+			# set device config
+			mkdir -p /data/misc/vlconfig
+			touch /data/misc/vlconfig/config
+			chown 1000.1000 /data/misc/vlconfig /data/misc/vlconfig/*
+			chmod 775 /data/misc/vlconfig
+			chmod 664 /data/misc/vlconfig/config
+
+			pm set-home-activity "org.vapor.android/.AppWorker"
+			am start -a android.intent.action.MAIN -c android.intent.category.HOME
+		fi
+	fi
+
+	# Daijishou Launcher
+	exists_dslauncher=$(pm list packages com.magneticchen.daijishou | grep -c com.magneticchen.daijishou)
+	if [ $exists_dslauncher -eq 1 ]; then
+		if [ ! -f /data/misc/dlconfig/config ]; then
+			# set device config
+			mkdir -p /data/misc/dlconfig
+			touch /data/misc/dlconfig/config
+			chown 1000.1000 /data/misc/dlconfig /data/misc/dlconfig/*
+			chmod 775 /data/misc/dlconfig
+			chmod 664 /data/misc/dlconfig/config
+
+			pm set-home-activity "com.magneticchen.daijishou/.activities.BootstrapActivity"
+			am start -a android.intent.action.MAIN -c android.intent.category.HOME
+		fi
+	fi
+
 	# BlissRestrictedLauncher
 	exists_restlauncher=$(pm list packages com.bliss.restrictedlauncher | grep -c com.bliss.restrictedlauncher)
 	if [ $exists_restlauncher -eq 1 ]; then
