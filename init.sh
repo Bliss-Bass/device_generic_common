@@ -1388,7 +1388,7 @@ function set_custom_settings()
 							fi
 							;;
 						FORCE_USE_ADB_CLIENT_MODE=3)
-							settings put glogal adb_enabled 1
+							settings put global adb_enabled 1
 							settings put global adb_wifi_enabled 1 
 							;;
                     esac
