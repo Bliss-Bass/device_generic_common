@@ -1761,8 +1761,8 @@ for c in `cat /proc/cmdline`; do
 						genports_array=($(echo $genports | sed 's/,/ /g' | xargs))
 						# loop through each option
 						for port in "${genports_array[@]}"; do
-							chown system:system /dev/bus/usb/$port
-							chmod 666 /dev/bus/usb/$port
+							# chown system:system /dev/bus/usb/$port
+							chmod -R 777 /dev/bus/usb/$port
 						done
 						;;
 					SET_TTY_PORT_PERMS=*)
