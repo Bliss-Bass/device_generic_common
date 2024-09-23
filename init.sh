@@ -65,6 +65,8 @@ function init_misc()
 	#mount | grep /data\ | grep -qE 'tmpfs|9p'
 	#[ $? -eq 0 ] && set_prop_if_empty ro.sys.sdcardfs false
 
+	set_sdcardfs
+
 	# remove wl if it's not used
 	local wifi
 	if [ -d /sys/class/net/wlan0 ]; then
@@ -901,6 +903,26 @@ function set_custom_ota()
 		esac
 	done
 	
+}
+
+function set_sdcardfs()
+{
+	for c in `cat /proc/cmdline`; do
+		case $c in
+			*=*)
+				eval $c
+				if [ -z "$1" ]; then
+					case $c in
+						# external_storage.projid.enabled is already enabled by default, 
+						# so make a flag to set external_storage.sdcardfs.enabled
+						SET_SDCARDFS_ENABLED=*)
+							setprop external_storage.sdcardfs.enabled "$SET_SDCARDFS_ENABLED"
+							;;
+					esac
+				fi
+				;;
+		esac
+	done
 }
 
 function init_loop_links()
