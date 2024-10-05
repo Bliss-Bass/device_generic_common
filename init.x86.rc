@@ -149,6 +149,16 @@ service ctrl-alt-del /system/bin/input keyevent --longpress POWER
     keycodes 97 100 111
     seclabel u:r:init:s0
 
+# use win-l to lock the device
+# KL layout info: https://developer.android.com/reference/android/view/KeyEvent
+service win-lock /system/bin/input keyevent 82
+    user root
+    group root
+    seclabel u:r:init:s0
+    disabled
+    oneshot
+    keycodes 117 40
+
 service iptsd_runner /system/vendor/bin/iptsd_runner
     class main
     disabled
