@@ -135,7 +135,7 @@ service wpa_supplicant /vendor/bin/hw/wpa_supplicant -dd \
 service logcat /system/bin/logcat -b all -v threadtime -f /data/log.txt
     class debug
 
-service thermal-daemon /system/vendor/bin/thermal-daemon --config-file /system/vendor/etc/thermal-daemon/thermal-conf.xml --ignore-cpuid-check
+service thermal-daemon /system/vendor/bin/thermal-daemon --config-file /system/vendor/etc/thermal-daemon/thermal-conf.xml --ignore-cpuid-check --adaptive
     class main
     user system
     group system
