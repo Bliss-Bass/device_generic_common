@@ -570,10 +570,14 @@ function init_hal_thermal()
 	#thermal-daemon test, pulled from Project Celadon
 	case "$(cat /sys/class/dmi/id/chassis_vendor | head -1)" in 
 	QEMU)
-		setprop vendor.thermal.enable 0
+		setprop vendor.thermal.enable ${VENDOR_THERMAL_ENABLE:-0}
 		;;
 	*)
-		setprop vendor.thermal.enable 1
+		if [ $(cat /proc/cpuinfo | grep vendor_id | tr ':' ' ' | cut -d' ' -f 3| head -1) == "GenuineIntel" ]; then
+			setprop vendor.thermal.enable ${VENDOR_THERMAL_ENABLE:-1}
+		else
+			setprop vendor.thermal.enable ${VENDOR_THERMAL_ENABLE:-0}
+		fi
 		;;
 	esac
 }
