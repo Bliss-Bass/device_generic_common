@@ -921,6 +921,10 @@ function set_storage_prefs()
 						SET_SDCARDFS_ENABLED=*)
 							setprop external_storage.sdcardfs.enabled "$SET_SDCARDFS_ENABLED"
 							;;
+						# external_storage.casefold.enabled should have a boot flag as well
+						SET_CASEFOLD_ENABLED=*)
+							setprop external_storage.casefold.enabled "$SET_CASEFOLD_ENABLED"
+							;;
 					esac
 				fi
 				;;
