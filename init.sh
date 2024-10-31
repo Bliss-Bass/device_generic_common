@@ -65,7 +65,7 @@ function init_misc()
 	#mount | grep /data\ | grep -qE 'tmpfs|9p'
 	#[ $? -eq 0 ] && set_prop_if_empty ro.sys.sdcardfs false
 
-	set_sdcardfs
+	set_storage_prefs
 
 	# remove wl if it's not used
 	local wifi
@@ -905,7 +905,7 @@ function set_custom_ota()
 	
 }
 
-function set_sdcardfs()
+function set_storage_prefs()
 {
 	for c in `cat /proc/cmdline`; do
 		case $c in
