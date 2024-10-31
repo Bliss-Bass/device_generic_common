@@ -782,7 +782,10 @@ function init_hal_sensors()
 		esac
 	done
 
-					
+	# Serial number for Android
+	bliss_serial=$(getprop ro.bliss.serialnumber)
+	set_property ro.boot.serialno $bliss_serial
+	set_property ro.serialno $bliss_serial
 
     set_property ro.iio.accel.quirks "no-trig,no-event"
     set_property ro.iio.anglvel.quirks "no-trig,no-event"
