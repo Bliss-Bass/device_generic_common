@@ -300,7 +300,7 @@ $(error "Go build should not be mixed with Surface build")
 endif
 # Inherit common Android Go configurations
 $(call inherit-product, build/target/product/go_defaults.mk)
-BLISS_SPECIAL_VARIANT := -Go
+# BLISS_SPECIAL_VARIANT := -Go
 PRODUCT_TYPE := go
 DONT_UNCOMPRESS_PRIV_APPS_DEXS := true
 MALLOC_SVELTE := true
