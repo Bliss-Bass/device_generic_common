@@ -64,8 +64,16 @@ function init_misc()
 	# enable sdcardfs if /data is not mounted on tmpfs or 9p
 	#mount | grep /data\ | grep -qE 'tmpfs|9p'
 	#[ $? -eq 0 ] && set_prop_if_empty ro.sys.sdcardfs false
+	# enable sdcardfs/esdfs if /data is not mounted on tmpfs or 9p
+	mount | grep /data\ | grep -qE 'tmpfs|9p'
+	[ $? -eq 0 ] && SDCARDFS_DISABLE=${SDCARDFS_DISABLE:-1}
 
 	set_storage_prefs
+
+	# Allow force disable sdcardfs/esdfs
+	if [ "$SDCARDFS_DISABLE" -ge 1 ]; then
+		set_property external_storage.sdcardfs.enabled false
+	fi
 
 	# remove wl if it's not used
 	local wifi
