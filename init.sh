@@ -1833,6 +1833,11 @@ for c in `cat /proc/cmdline`; do
 						# options: true, false
 						set_property persist.bliss.disable_recents "$FORCE_DISABLE_RECENTS"
 						;;
+					FORCE_MOUSE_PRESENTATION=*)
+						# Force mouse presentation
+						# options: 0, 1
+						set_property sys.mouse.presentation "$FORCE_MOUSE_PRESENTATION"
+						;;
 					FORCE_HIDE_NAVBAR_WINDOW=*)
 						# Force hide navigation bar window
 						# options: 0, 1
