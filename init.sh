@@ -1024,6 +1024,7 @@ function set_custom_package_perms()
 	# com.bliss.bootsight
 	exists_bootsight=$(pm list packages com.bliss.bootsight | grep -c com.bliss.bootsight)
 	if [ $exists_bootsight -eq 1 ]; then
+		dpm set-active-admin com.bliss.bootsight/android.app.admin.DeviceAdminReceiver
 		if [ ! -f /data/misc/bootsight/default ]; then
 			dpm set-active-admin com.bliss.bootsight/android.app.admin.DeviceAdminReceiver
 			appops set com.bliss.bootsight REQUEST_IGNORE_BATTERY_OPTIMIZATIONS allow
