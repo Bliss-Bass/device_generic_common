@@ -142,6 +142,54 @@ function init_hal_audio()
 	fi
 }
 
+function init_hal_brcm_wifi()
+{
+##	Function created by Chaozhuo's PhoenixOS
+##	Currently these devices are supported to use broadcom-wl driver
+#	Broadcom BCM4313 (PCI ID 14e4:4727)
+#	Broadcom BCM4321 (PCI IDs 14e4:4328, 14e4:4329, 14e4:432a)
+#	Broadcom BCM4322 (PCI IDs 14e4:432b, 14e4:432d)
+#	Broadcom BCM43142 (PCI ID 14e4:4365)
+#	Broadcom BCM4352 (PCI ID 14e4:43b1)
+#	Broadcom BCM4360 (PCI IDs 14e4:43a0, 14e4:4360)
+## 	These devices are also on the list, but removed due to the fact that 
+##	b43 or brcm80211 supports it.
+##	https://wireless.wiki.kernel.org/en/users/drivers/b43
+#	Broadcom BCM4311 (PCI IDs 14e4:4311, 14e4:4312)
+#	Broadcom BCM4312 (PCI ID 14e4:4315)
+#	Broadcom BCM4322 (PCI IDs 14e4:432c)
+#	Broadcom BCM43224 (PCI IDs 14e4:0576, 14e4:4353)
+#	Broadcom BCM43225 (PCI ID 14e4:4357)
+#	Broadcom BCM43227 (PCI ID 14e4:4358)
+#	Broadcom BCM43228 (PCI ID 14e4:4359)
+#	Broadcom BCM4331 (PCI ID 14e4:4331)
+
+	BCMAID=`lspci | grep "14e4" | awk '{print $4}'`
+
+	case "${BCMAID##*:}" in
+			4727 | \
+			4328 | 4329 | 432a | \
+			432b | 432d | \
+			4365 | \
+			43b1 | \
+			43a0 | 4360 )
+
+			rmmod b43
+			rmmod b44
+			rmmod b43legacy
+			rmmod ssb
+			rmmod bcma
+			rmmod brcm80211
+			rmmod brcmsmac
+			rmmod wl
+
+			modprobe wl
+			;;
+		*)
+			;;
+	esac
+}
+
 function init_hal_audio_bootcomplete()
 {
 	if [ "$BOARD" == "Jupiter" ] && [ "$VENDOR" == "Valve" ]
@@ -1634,6 +1682,7 @@ function do_init()
 	init_hal_audio
 	set_custom_ota
 	set_max_logd
+	init_hal_brcm_wifi
 	init_hal_bluetooth
 	init_hal_camera
 	init_hal_gps
