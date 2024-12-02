@@ -1089,6 +1089,7 @@ function set_custom_package_perms()
 			pm grant com.bliss.bootsight android.permission.INTERNET
 			pm grant com.bliss.bootsight android.permission.SYSTEM_ALERT_WINDOW
 			pm grant com.bliss.bootsight android.permission.RECEIVE_BOOT_COMPLETED
+			pm grant com.bliss.bootsight android.permission.READ_PRIVILEGED_PHONE_STATE
 			dumpsys deviceidle whitelist +com.bliss.bootsight
 			# Set config marker
 			mkdir -p /data/misc/bootsight
