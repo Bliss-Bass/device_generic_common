@@ -1284,6 +1284,11 @@ function set_custom_package_perms()
 		pm grant cu.axel.smartdock android.permission.BIND_ACCESSIBILITY_SERVICE
 		pm grant --user $current_user cu.axel.smartdock android.permission.BIND_ACCESSIBILITY_SERVICE
 		appops set cu.axel.smartdock BIND_ACCESSIBILITY_SERVICE allow
+		current_acc_pkgs=$(settings get secure enabled_accessibility_services)
+		is_setup_complete=$(settings get secure user_setup_complete)
+		if [[ $is_setup_complete -eq 1 ]] && [[ $(echo "$current_acc_pkgs" | grep -c cu.axel.smartdock) -eq 0 ]]; then
+			settings put secure enabled_accessibility_services $current_acc_pkgs:cu.axel.smartdock/.services.DockService
+		fi
 		pm grant cu.axel.smartdock android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
 		pm grant --user $current_user cu.axel.smartdock android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
 		appops set cu.axel.smartdock BIND_NOTIFICATION_LISTENER_SERVICE allow
