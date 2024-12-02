@@ -1077,6 +1077,39 @@ function set_custom_package_perms()
 		appops set com.example.screenoverlay INJECT_EVENTS allow
 	fi
 
+	# DaoidVNC
+	exists_droidvnc=$(pm list packages net.christianbeier.droidvnc_ng | grep -c net.christianbeier.droidvnc_ng)
+	if [ $exists_droidvnc -eq 1 ]; then
+
+		appops set net.christianbeier.droidvnc_ng PROJECT_MEDIA allow
+		appops set net.christianbeier.droidvnc_ng MANAGE_MEDIA_PROJECTION allow
+		appops set net.christianbeier.droidvnc_ng INJECT_EVENTS allow
+		appops set net.christianbeier.droidvnc_ng FOREGROUND_SERVICE allow
+		appops set net.christianbeier.droidvnc_ng FOREGROUND_SERVICE_MEDIA_PROJECTION allow
+		appops set net.christianbeier.droidvnc_ng FOREGROUND_SERVICE_CONNECTED_DEVICE allow
+		appops set net.christianbeier.droidvnc_ng CHANGE_NETWORK_STATE allow
+		pm grant net.christianbeier.droidvnc_ng android.permission.INTERNET
+		pm grant net.christianbeier.droidvnc_ng android.permission.RECEIVE_BOOT_COMPLETED
+		pm grant net.christianbeier.droidvnc_ng android.permission.WRITE_EXTERNAL_STORAGE
+		pm grant net.christianbeier.droidvnc_ng android.permission.FOREGROUND_SERVICE
+		pm grant net.christianbeier.droidvnc_ng android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION
+		pm grant net.christianbeier.droidvnc_ng android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE
+		pm grant net.christianbeier.droidvnc_ng android.permission.CHANGE_NETWORK_STATE
+		pm grant net.christianbeier.droidvnc_ng android.permission.WAKE_LOCK
+		pm grant net.christianbeier.droidvnc_ng android.permission.POST_NOTIFICATIONS
+		pm grant net.christianbeier.droidvnc_ng android.permission.ACCESS_NETWORK_STATE
+		pm grant net.christianbeier.droidvnc_ng net.christianbeier.droidvnc_ng.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+		pm grant net.christianbeier.droidvnc_ng android.permission.READ_EXTERNAL_STORAGE
+		pm grant net.christianbeier.droidvnc_ng android.permission.BIND_ACCESSIBILITY_SERVICE
+		pm grant --user $current_user net.christianbeier.droidvnc_ng android.permission.BIND_ACCESSIBILITY_SERVICE
+		appops set net.christianbeier.droidvnc_ng BIND_ACCESSIBILITY_SERVICE allow
+
+		current_acc_pkgs=$(settings get secure enabled_accessibility_services)
+		if [ $(echo "$current_acc_pkgs" | grep -c net.christianbeier.droidvnc_ng) -eq 0 ]; then
+			settings put secure enabled_accessibility_services $current_acc_pkgs:net.christianbeier.droidvnc_ng/.InputService
+		fi
+	fi
+
 	# com.bliss.bootsight
 	exists_bootsight=$(pm list packages com.bliss.bootsight | grep -c com.bliss.bootsight)
 	if [ $exists_bootsight -eq 1 ]; then
