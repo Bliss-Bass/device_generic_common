@@ -705,7 +705,7 @@ function init_hal_sensors()
             *LenovoideapadD330*)
                 set_property ro.iio.accel.order 102
                 set_property ro.ignore_atkbd 1
-                ;&
+                ;;
             *LINX1010B*)
                 set_property ro.iio.accel.x.opt_scale -1
                 set_property ro.iio.accel.z.opt_scale -1
@@ -742,9 +742,7 @@ function init_hal_sensors()
 				;;
             *SwitchSA5-271*|*SwitchSA5-271P*)
                 set_property ro.ignore_atkbd 1
-                has_sensors=true
-                hal_sensors=iio
-                ;&
+                ;;
             *)
                 has_sensors=false
                 ;;
@@ -753,9 +751,10 @@ function init_hal_sensors()
             # has iio sensor-hub?
             if [ -n "`ls /sys/bus/iio/devices/iio:device* 2> /dev/null`" ]; then
                 toybox chown -R 1000.1000 /sys/bus/iio/devices/iio:device*/
+				toybox chmod 775 /sys/bus/iio/devices/iio:device*/
                 [ -n "`ls /sys/bus/iio/devices/iio:device*/in_accel_x_raw 2> /dev/null`" ] && has_sensors=true
                 hal_sensors=iio
-            elif [ "$hal_sensors" != "kbd" ] | [ hal_sensors=iio ]; then
+            elif [ "$hal_sensors" != "kbd" ] | [ "$hal_sensors" == "iio" ]; then
                 has_sensors=true
             fi
 
@@ -1106,8 +1105,37 @@ function set_custom_package_perms()
 
 		current_acc_pkgs=$(settings get secure enabled_accessibility_services)
 		if [ $(echo "$current_acc_pkgs" | grep -c net.christianbeier.droidvnc_ng) -eq 0 ]; then
-			settings put secure enabled_accessibility_services $current_acc_pkgs:net.christianbeier.droidvnc_ng/.InputService
+			if [ -n "$current_acc_pkgs" ]; then
+				settings put secure enabled_accessibility_services $current_acc_pkgs:net.christianbeier.droidvnc_ng/.InputService
+			else
+				settings put secure enabled_accessibility_services net.christianbeier.droidvnc_ng/.InputService
+			fi
 		fi
+	fi
+
+	# com.aurora.services
+	exists_auroraservices=$(pm list com.aurora.services | grep -c com.aurora.services)
+	if [ $exists_auroraservices -eq 1 ]; then
+
+		pm grant com.aurora.services android.permission.FOREGROUND_SERVICE
+		appops set com.aurora.services FOREGROUND_SERVICE allow
+		pm grant com.aurora.services android.permission.MANAGE_EXTERNAL_STORAGE
+		appops set com.aurora.services MANAGE_EXTERNAL_STORAGE allow
+		pm grant com.aurora.services android.permission.READ_EXTERNAL_STORAGE
+		appops set com.aurora.services READ_EXTERNAL_STORAGE allow
+		pm grant com.aurora.services android.permission.WRITE_EXTERNAL_STORAGE
+		appops set com.aurora.services WRITE_EXTERNAL_STORAGE allow
+		pm grant com.aurora.services android.permission.QUERY_ALL_PACKAGES
+		appops set com.aurora.services QUERY_ALL_PACKAGES allow
+		pm grant com.aurora.services android.permission.INSTALL_PACKAGES
+		appops set com.aurora.services INSTALL_PACKAGES allow
+		pm grant com.aurora.services android.permission.DELETE_PACKAGES
+		appops set com.aurora.services DELETE_PACKAGES allow
+		pm grant com.aurora.services android.permission.REQUEST_INSTALL_PACKAGES
+		appops set com.aurora.services REQUEST_INSTALL_PACKAGES allow
+		pm grant com.aurora.services android.permission.REQUEST_DELETE_PACKAGES
+		appops set com.aurora.services REQUEST_DELETE_PACKAGES allow
+
 	fi
 
 	# com.bliss.bootsight
@@ -1314,14 +1342,6 @@ function set_custom_package_perms()
 		pm grant cu.axel.smartdock android.permission.WRITE_SETTINGS
 		pm grant --user $current_user cu.axel.smartdock android.permission.WRITE_SETTINGS
 		appops set cu.axel.smartdock WRITE_SETTINGS allow
-		pm grant cu.axel.smartdock android.permission.BIND_ACCESSIBILITY_SERVICE
-		pm grant --user $current_user cu.axel.smartdock android.permission.BIND_ACCESSIBILITY_SERVICE
-		appops set cu.axel.smartdock BIND_ACCESSIBILITY_SERVICE allow
-		current_acc_pkgs=$(settings get secure enabled_accessibility_services)
-		is_setup_complete=$(settings get secure user_setup_complete)
-		if [[ $is_setup_complete -eq 1 ]] && [[ $(echo "$current_acc_pkgs" | grep -c cu.axel.smartdock) -eq 0 ]]; then
-			settings put secure enabled_accessibility_services $current_acc_pkgs:cu.axel.smartdock/.services.DockService
-		fi
 		pm grant cu.axel.smartdock android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
 		pm grant --user $current_user cu.axel.smartdock android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
 		appops set cu.axel.smartdock BIND_NOTIFICATION_LISTENER_SERVICE allow
@@ -1342,17 +1362,20 @@ function set_custom_package_perms()
 			
 			if [ ! -f /data/misc/sdconfig/accessibility ] && ! pm list packages | grep -q "com.blissos.setupwizard"; then
 				# set accessibility services
-				eas=$(settings get secure enabled_accessibility_services)
-				if [ -n "$eas" ]; then
-					settings put secure enabled_accessibility_services $eas:cu.axel.smartdock/cu.axel.smartdock.services.DockService
-				else
-					settings put secure enabled_accessibility_services cu.axel.smartdock/cu.axel.smartdock.services.DockService
+				current_acc_pkgs=$(settings get secure enabled_accessibility_services)
+				is_setup_complete=$(settings get secure user_setup_complete)
+				if [[ $is_setup_complete -eq 1 ]] && [[ $(echo "$current_acc_pkgs" | grep -c cu.axel.smartdock) -eq 0 ]]; then
+					if [ -n "$current_acc_pkgs" ]; then
+						settings put secure enabled_accessibility_services $current_acc_pkgs:cu.axel.smartdock/.services.DockService
+					else
+						settings put secure enabled_accessibility_services cu.axel.smartdock/.services.DockService
+					fi
+					mkdir -p /data/misc/sdconfig
+					touch /data/misc/sdconfig/accessibility
+					chown 1000.1000 /data/misc/sdconfig /data/misc/sdconfig/*
+					chmod 775 /data/misc/sdconfig
+					chmod 664 /data/misc/sdconfig/accessibility
 				fi
-				mkdir -p /data/misc/sdconfig
-				touch /data/misc/sdconfig/accessibility
-				chown 1000.1000 /data/misc/sdconfig /data/misc/sdconfig/*
-				chmod 775 /data/misc/sdconfig
-				chmod 664 /data/misc/sdconfig/accessibility
 			fi
 			if [ ! -f /data/misc/sdconfig/notification ]; then
 				# set notification listeners
@@ -1932,7 +1955,12 @@ for c in `cat /proc/cmdline`; do
 					FORCE_MOUSE_PRESENTATION=*)
 						# Force mouse presentation
 						# options: 0, 1
-						set_property sys.mouse.presentation "$FORCE_MOUSE_PRESENTATION"
+						set_property persist.mouse.presentation "$FORCE_MOUSE_PRESENTATION"
+						;;
+					FORCE_MOUSE_DISPLAY_ID=*)
+						# Force mouse on Display ID
+						# options: 0, 1, 2, etc.
+						set_property persist.override.cursor_display_id "$FORCE_MOUSE_DISPLAY_ID"
 						;;
 					FORCE_HIDE_NAVBAR_WINDOW=*)
 						# Force hide navigation bar window
