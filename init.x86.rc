@@ -1,3 +1,4 @@
+import /vendor/etc/init/bass_init.rc
 import /vendor/etc/init/init.bass-vendor.rc
 
 on early-init
