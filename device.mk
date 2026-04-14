@@ -62,24 +62,6 @@ PRODUCT_PROPERTY_OVERRIDES := \
     external_storage.casefold.enabled=1 \
     external_storage.projid.enabled=1
 
-# LMKd
-ifneq ($(IS_GO_VERSION),true)
-PRODUCT_PRODUCT_PROPERTIES += \
-    ro.lmk.critical_upgrade=true \
-    ro.lmk.use_minfree_levels=true \
-    ro.lmk.use_psi=true \
-    ro.lmk.use_new_strategy=false
-else
-# LMKd
-PRODUCT_PRODUCT_PROPERTIES += \
-    ro.lmk.critical_upgrade=true \
-    ro.lmk.use_psi=true \
-    ro.lmk.use_new_strategy=false
-    
-    # We want to be able to set this via kernel cli
-    # ro.lmk.use_minfree_levels=true
-endif
-
 # Disable support of one-handed mode
 PRODUCT_PRODUCT_PROPERTIES += \
     ro.support_one_handed_mode=false
@@ -108,6 +90,8 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_COPY_FILES := \
     $(if $(wildcard $(PRODUCT_DIR)init.rc),$(PRODUCT_DIR)init.rc:root/init.rc) \
     $(if $(wildcard $(PRODUCT_DIR)init.sh),$(PRODUCT_DIR),$(LOCAL_PATH)/)init.sh:system/etc/init.sh \
+    $(if $(wildcard $(PRODUCT_DIR)init.fstab.sh),$(PRODUCT_DIR),$(LOCAL_PATH)/)init.fstab.sh:$(TARGET_COPY_OUT_VENDOR)/etc/init.fstab.sh \
+    $(if $(wildcard $(PRODUCT_DIR)init.zram.sh),$(PRODUCT_DIR),$(LOCAL_PATH)/)init.zram.sh:$(TARGET_COPY_OUT_VENDOR)/etc/init.zram.sh \
     $(if $(wildcard $(PRODUCT_DIR)modules.blocklist),$(PRODUCT_DIR),$(LOCAL_PATH)/)modules.blocklist:system/etc/modules.blocklist \
     $(if $(wildcard $(PRODUCT_DIR)modules.options),$(PRODUCT_DIR),$(LOCAL_PATH)/)modules.options:system/etc/modules.options \
     $(if $(wildcard $(PRODUCT_DIR)init.bass-vendor.rc),$(PRODUCT_DIR),$(LOCAL_PATH)/)init.bass-vendor.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/init.bass-vendor.rc \
@@ -123,16 +107,14 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/ppp/ip-up:$(TARGET_COPY_OUT_SYSTEM)/etc/ppp/ip-up \
     $(LOCAL_PATH)/ppp/ip-down:$(TARGET_COPY_OUT_SYSTEM)/etc/ppp/ip-down \
     $(LOCAL_PATH)/ppp/peers/gprs:$(TARGET_COPY_OUT_SYSTEM)/etc/ppp/peers/gprs \
-    $(LOCAL_PATH)/media_codecs.xml:$(TARGET_COPY_OUT_SYSTEM)/etc/media_codecs.xml \
-    $(LOCAL_PATH)/media_profiles.xml:$(TARGET_COPY_OUT_SYSTEM)/etc/media_profiles.xml \
-    $(LOCAL_PATH)/pciids/pci.ids:$(TARGET_COPY_OUT_SYSTEM)/vendor/etc/pci.ids \
-    $(LOCAL_PATH)/usbids/usb.ids:$(TARGET_COPY_OUT_SYSTEM)/vendor/etc/usb.ids \
+    $(LOCAL_PATH)/media_codecs.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs.xml \
+    $(LOCAL_PATH)/media_profiles.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_profiles_V1_0.xml \
     $(LOCAL_PATH)/fstab.internal.x86:$(TARGET_COPY_OUT_SYSTEM)/vendor/etc/fstab.internal.x86 \
-    frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:$(TARGET_COPY_OUT_SYSTEM)/etc/media_codecs_google_audio.xml \
-    frameworks/av/media/libstagefright/data/media_codecs_google_c2.xml:$(TARGET_COPY_OUT_SYSTEM)/etc/media_codecs_google_c2.xml \
-    frameworks/av/media/libstagefright/data/media_codecs_google_c2_audio.xml:$(TARGET_COPY_OUT_SYSTEM)/etc/media_codecs_google_c2_audio.xml \
-    frameworks/av/media/libstagefright/data/media_codecs_google_c2_video.xml:$(TARGET_COPY_OUT_SYSTEM)/etc/media_codecs_google_c2_video.xml \
-    frameworks/av/media/libstagefright/data/media_codecs_google_video.xml:$(TARGET_COPY_OUT_SYSTEM)/etc/media_codecs_google_video.xml \
+    frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_google_audio.xml \
+    frameworks/av/media/libstagefright/data/media_codecs_google_c2.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_google_c2.xml \
+    frameworks/av/media/libstagefright/data/media_codecs_google_c2_audio.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_google_c2_audio.xml \
+    frameworks/av/media/libstagefright/data/media_codecs_google_c2_video.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_google_c2_video.xml \
+    frameworks/av/media/libstagefright/data/media_codecs_google_video.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_google_video.xml \
     external/mesa/src/util/00-mesa-defaults.conf:$(TARGET_COPY_OUT_VENDOR)/etc/drirc
 
 # Copy Vendor Files
@@ -195,8 +177,19 @@ PRODUCT_COPY_FILES += \
 
 # Copy Misc Config Files
 PRODUCT_COPY_FILES += \
-    $(foreach f,$(wildcard $(LOCAL_PATH)/alsa/*),$(f):$(subst $(LOCAL_PATH),system/etc,$(f))) \
     $(foreach f,$(wildcard $(LOCAL_PATH)/idc/*.idc $(LOCAL_PATH)/keylayout/*.kl),$(f):$(subst $(LOCAL_PATH),system/usr,$(f)))
+
+# Go init
+ifeq ($(BOARD_IS_GO_BUILD),true)
+PRODUCT_COPY_FILES += \
+    $(if $(wildcard $(PRODUCT_DIR)init.low_performance.rc),$(PRODUCT_DIR)init.low_performance.rc,$(LOCAL_PATH)/init.low_performance.rc):$(TARGET_COPY_OUT_VENDOR)/etc/init/hw/init.low_performance.rc
+endif
+
+# Recovery
+PRODUCT_COPY_FILES += \
+    $(if $(wildcard $(PRODUCT_DIR)init.recovery.$(TARGET_PRODUCT).rc),$(PRODUCT_DIR)init.recovery.$(TARGET_PRODUCT).rc,$(LOCAL_PATH)/init.recovery.x86.rc):$(TARGET_COPY_OUT_RECOVERY)/root/init.recovery.$(TARGET_PRODUCT).rc \
+    $(if $(wildcard $(PRODUCT_DIR)init.recovery.sh),$(PRODUCT_DIR),$(LOCAL_PATH)/)init.recovery.sh:$(TARGET_COPY_OUT_RECOVERY)/root/system/etc/init.recovery.sh \
+    $(if $(wildcard $(PRODUCT_DIR)init.fstab.sh),$(PRODUCT_DIR),$(LOCAL_PATH)/)init.fstab.sh:$(TARGET_COPY_OUT_RECOVERY)/root/system/etc/init.fstab.sh \
 
 PRODUCT_TAGS += dalvik.gc.type-precise
 
@@ -219,7 +212,7 @@ PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
 
 # Copy any Permissions files, overriding anything if needed
 $(foreach f,$(wildcard $(LOCAL_PATH)/permissions/*.xml),\
-    $(eval PRODUCT_COPY_FILES += $(f):$(TARGET_COPY_OUT_SYSTEM)/etc/permissions/$(notdir $f)))
+    $(eval PRODUCT_COPY_FILES += $(f):$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/permissions/$(notdir $f)))
 
 $(foreach f,$(wildcard $(LOCAL_PATH)/permissions_product/*.xml),\
     $(eval PRODUCT_COPY_FILES += $(f):$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/$(notdir $f)))
@@ -247,9 +240,6 @@ $(call inherit-product-if-exists,hardware/libsensors/sensors.mk)
 
 # Get GloDroid components
 $(call inherit-product-if-exists,$(LOCAL_PATH)/glodroid/device_glodroid.mk)
-
-# Get tablet dalvik parameters
-$(call inherit-product,frameworks/native/build/tablet-10in-xhdpi-2048-dalvik-heap.mk)
 
 ifeq ($(USE_LIBNDK_TRANSLATION_NB),true)
 $(call inherit-product-if-exists, vendor/google/emu-x86/target/libndk_translation.mk)

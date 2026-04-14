@@ -1,0 +1,35 @@
+on early-init
+    setprop ro.minui.pixel_format ${ro.boot.pixel_format}
+    mkdir /mnt/vendor/shared 0770 root root
+
+on init
+    start console
+
+service dhcpclient /system/bin/dhcpclient -i ${vendor.recovery.ethernet.dhcp.iface:-eth0}
+    user root
+    group root
+    seclabel u:r:dhcpclient:s0
+    oneshot
+    disabled
+
+on early-boot
+    ifup ${vendor.recovery.ethernet.dhcp.iface:-eth0}
+    start dhcpclient
+
+on early-fs
+    exec u:r:init:s0 -- /system/bin/sh /system/etc/init.fstab.sh
+
+on post-fs
+    # Mount ESP if system is UEFI
+    mkdir /boot/efi 0700 root root
+    mount vfat /dev/block/by-name/esp /boot/efi rw,umask=0077
+
+    exec u:r:init:s0 -- /system/bin/sh /system/etc/init.recovery.sh
+    exec u:r:init:s0 -- /system/bin/sh /system/bin/recovery.bms.sh
+
+on property:net.dns1=*
+    exec u:r:init:s0 -- /system/bin/sh /system/etc/init.recovery.sh netconsole
+
+on property:sys.shutdown.requested=*
+    exec u:r:init:s0 -- /system/bin/sh /system/bin/recovery.bms.sh ${sys.shutdown.requested}
+    wait_for_prop vendor.boot-mode-selection.complete true

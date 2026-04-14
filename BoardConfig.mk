@@ -4,6 +4,8 @@
 
 TARGET_BOARD_PLATFORM := android-x86
 
+LOCAL_COMMON_TREE := device/generic/common
+
 ## Use EROFS image or SquashFS
 USE_SQUASHFS := 1
 USE_EROFS := 0
@@ -14,10 +16,11 @@ AB_OTA_UPDATER := true
 AB_OTA_PARTITIONS += \
     system \
     initrd \
-    kernel
+    kernel \
+	ramdisk-recovery
 
 # Rootfs
-BOARD_ROOT_EXTRA_FOLDERS := grub
+BOARD_ROOT_EXTRA_FOLDERS := boot
 
 # Some framework code requires this to enable BT
 BOARD_HAVE_BLUETOOTH := true
@@ -40,7 +43,7 @@ endif
 # the following variables could be overridden
 TARGET_PRELINK_MODULE := false
 TARGET_NO_KERNEL ?= false
-TARGET_NO_RECOVERY ?= true
+#TARGET_NO_RECOVERY ?= true
 TARGET_EXTRA_KERNEL_MODULES := 
 ifneq ($(filter efi_img,$(MAKECMDGOALS)),)
 TARGET_KERNEL_ARCH ?= x86_64
@@ -89,8 +92,12 @@ TARGET_USES_HWC2 ?= true
 USE_CAMERA_STUB ?= false
 
 # This enables the wpa wireless driver
-BOARD_WPA_SUPPLICANT_DRIVER ?= NL80211
-WPA_SUPPLICANT_VERSION ?= VER_2_1_DEVEL
+# and hostapd tool
+BOARD_HOSTAPD_DRIVER := NL80211
+BOARD_WPA_SUPPLICANT_DRIVER := NL80211
+WPA_SUPPLICANT_VERSION := VER_0_8_X
+WIFI_HIDL_FEATURE_DUAL_INTERFACE := true
+WIFI_HIDL_FEATURE_AWARE := true
 
 BOARD_GPU_DRIVERS ?= crocus i915 iris freedreno panfrost nouveau r300g r600g radeonsi virgl vmwgfx
 ifneq ($(strip $(BOARD_GPU_DRIVERS)),)
@@ -100,13 +107,14 @@ endif
 #BOARD_MESA3D_USES_MESON_BUILD := true
 #BOARD_MESA3D_CLASSIC_DRIVERS := i965
 BOARD_MESA3D_BUILD_LIBGBM := true
-BOARD_MESA3D_GALLIUM_DRIVERS := crocus iris i915 nouveau r600 radeonsi svga virgl zink swrast
-BOARD_MESA3D_VULKAN_DRIVERS := amd intel intel_hasvk virtio swrast
+BOARD_MESA3D_GALLIUM_DRIVERS := crocus iris i915 nouveau r600 radeonsi svga virgl zink softpipe llvmpipe
+BOARD_MESA3D_VULKAN_DRIVERS := amd intel intel_hasvk virtio swrast nouveau
 BOARD_MESA3D_GALLIUM_VA := enabled
-BOARD_MESA3D_VIDEO_CODECS := h264dec h264enc h265dec h265enc vc1dec
+BOARD_MESA3D_VIDEO_CODECS := h264dec h265dec vc1dec av1dec vp9dec
+BOARD_MESA3D_MESON_ARGS := -Dallow-kcmp=enabled -Dmesa-clc=system -Dprecomp-compiler=system
 BUILD_EMULATOR_OPENGL := true
 
-BOARD_KERNEL_CMDLINE := root=/dev/ram0$(if $(filter x86_64,$(TARGET_ARCH) $(TARGET_KERNEL_ARCH)),, vmalloc=192M)
+BOARD_KERNEL_CMDLINE := $(if $(filter x86_64,$(TARGET_ARCH) $(TARGET_KERNEL_ARCH)),, vmalloc=192M)
 TARGET_KERNEL_DIFFCONFIG := device/generic/common/selinux_diffconfig
 
 # Atom specific
@@ -144,11 +152,15 @@ ifeq ($(IS_GO_VERSION), true)
 MALLOC_SVELTE := true
 endif
 
+KERNEL_DIR ?= kernel/x86/common
+
 # Surface specific
 ifeq ($(BOARD_IS_SURFACE_BUILD),true)
-KERNEL_DIR := kernel-surface
+KERNEL_DIR := kernel/x86/surface
+BOARD_KERNEL_CMDLINE += nvme_core.default_ps_max_latency_us=0 pcie_aspm=off
 endif
 
+TARGET_KERNEL_SOURCE := $(KERNEL_DIR)
 COMPATIBILITY_ENHANCEMENT_PACKAGE := true
 PRC_COMPATIBILITY_PACKAGE := true
 ZIP_OPTIMIZATION_NO_INTEGRITY := true
@@ -158,14 +170,18 @@ DEVICE_MANIFEST_FILE := device/generic/common/manifest.xml
 #BOARD_SEPOLICY_DIRS += device/generic/common/sepolicy/nonplat \
 #                       system/bt/vendor_libs/linux/sepolicy \
 #                       device/generic/common/sepolicy/celadon/graphics/mesa \
-#                       device/generic/common/sepolicy/celadon/thermal \
 #                       vendor/intel/proprietary/houdini/sepolicy \
 #                       vendor/google/proprietary/widevine-prebuilt/sepolicy
 #
-BOARD_PLAT_PRIVATE_SEPOLICY_DIR := device/generic/common/sepolicy/plat_private
+BOARD_SEPOLICY_DIRS += $(LOCAL_COMMON_TREE)/sepolicy/celadon/thermal \
+						$(LOCAL_COMMON_TREE)/sepolicy/celadon/thermal/thermal-daemon
+SYSTEM_EXT_PRIVATE_SEPOLICY_DIRS += $(LOCAL_COMMON_TREE)/sepolicy/plat_private
+SYSTEM_EXT_PUBLIC_SEPOLICY_DIRS += $(LOCAL_COMMON_TREE)/sepolicy/public
+BOARD_VENDOR_SEPOLICY_DIRS += device/generic/common/sepolicy/vendor
 
 BOARD_BUILD_SYSTEM_ROOT_IMAGE := true
-BOARD_SYSTEMIMAGE_PARTITION_SIZE := 4294967290
+BOARD_SYSTEMIMAGE_PARTITION_SIZE := $(shell echo | awk '{printf "%.0f", 5.2 * 1000 * 1000 * 1000}')
+BOARD_RECOVERYIMAGE_PARTITION_SIZE := $(shell echo | awk '{printf "%.0f", 98 * 1000 * 1000}')
 TARGET_USERIMAGES_SPARSE_EXT_DISABLED := true
 BOARD_USES_OEMIMAGE := true
 BUILD_BROKEN_USES_NETWORK := true
@@ -175,6 +191,7 @@ BUILD_BROKEN_DUP_RULES := true
 BUILD_BROKEN_USES_BUILD_HOST_EXECUTABLE := true
 BUILD_BROKEN_USES_BUILD_HOST_STATIC_LIBRARY := true
 BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
+BUILD_BROKEN_PLUGIN_VALIDATION := soong-llvm22
 
 #ifeq ($(ANDROID_USE_INTEL_HOUDINI),true)
 #include vendor/intel/proprietary/houdini/board/native_bridge_arm_on_x86.mk
@@ -184,8 +201,16 @@ STAGEFRIGHT_AVCENC_CFLAGS := -DANDROID_GCE
 
 # Properties
 BOARD_PROPERTY_OVERRIDES_SPLIT_ENABLED := true
-TARGET_VENDOR_PROP += device/generic/common/props/vendor.prop
-TARGET_SYSTEM_PROP += device/generic/common/system.prop
+TARGET_VENDOR_PROP += $(LOCAL_COMMON_TREE)/properties/vendor.prop
+TARGET_SYSTEM_PROP += $(LOCAL_COMMON_TREE)/properties/system.prop
+
+# Recovery
+TARGET_RECOVERY_FSTAB := $(LOCAL_COMMON_TREE)/recovery.fstab
+TARGET_RECOVERY_UI_LIB := librecovery_ui_x86
+
+# Init
+TARGET_INIT_VENDOR_LIB ?= //$(LOCAL_COMMON_TREE):init_x86
+TARGET_RECOVERY_DEVICE_MODULES ?= init_x86
 
 # Include GloDroid components
 include device/generic/common/glodroid/BoardConfig_glodroid.mk

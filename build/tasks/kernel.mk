@@ -8,7 +8,9 @@
 #      http://www.apache.org/licenses/LICENSE-2.0
 #
 
-TARGET_CLANG_PATH := prebuilts/clang/host/linux-x86/clang-r498229b/bin
+TARGET_CLANG_PATH := prebuilts/clang/host/linux-x86/clang-r584948b/bin
+TARGET_RUST_PATH := prebuilts/rust-toolchain/linux-x86/1.93.1/bin
+TARGET_BINDGEN_PATH := prebuilts/clang-tools-kernel/linux-x86/bin
 
 ifneq ($(TARGET_NO_KERNEL),true)
 
@@ -17,7 +19,7 @@ INSTALLED_KERNELIMAGE_TARGET := $(PRODUCT_OUT)/kernel.img
 ifeq ($(TARGET_PREBUILT_KERNEL),)
 ifneq ($(filter x86%,$(TARGET_ARCH)),)
 
-KERNEL_DIR ?= kernel
+KERNEL_DIR ?= kernel/x86/common
 SOF_FIRMWARE_DIR := vendor/intel/proprietary/sof-bin
 COPY_FIRMWARE_SCRIPT := device/generic/firmware/copy-firmware.sh
 COPY_FIRMWARE_SILEAD_SCRIPT := vendor/silead/proprietary/firmware/firmware/linux/copy-firmware.sh
@@ -31,6 +33,21 @@ KERNEL_CONFIG_DIR := arch/x86/configs
 
 ifeq ($(TARGET_KERNEL_ARCH),x86_64)
 CROSS_COMPILE := $(abspath $(TARGET_TOOLS_PREFIX))
+
+# --- RUST TOOLCHAIN SETUP ---
+# Set to 'true' to use ~/.rustup instead of AOSP prebuilts
+USE_LOCAL_RUSTUP ?= false
+
+ifeq ($(USE_LOCAL_RUSTUP),true)
+    RUST_BIN_DIR := $(HOME)/.cargo/bin
+    BINDGEN_BIN_DIR := $(HOME)/.cargo/bin
+    LIBCLANG_DIR := $(abspath $(TARGET_CLANG_PATH)/../lib)
+else
+    RUST_BIN_DIR := $(abspath $(TARGET_RUST_PATH))
+    BINDGEN_BIN_DIR := $(abspath $(TARGET_BINDGEN_PATH))
+    LIBCLANG_DIR := $(abspath $(TARGET_CLANG_PATH)/../lib)
+endif
+
 KERNEL_CLANG_FLAGS := \
         LLVM=1 \
         CC=$(abspath $(TARGET_CLANG_PATH)/clang) \
@@ -46,7 +63,14 @@ KERNEL_CLANG_FLAGS := \
         HOSTCXX=$(abspath $(TARGET_CLANG_PATH)/clang++) \
         HOSTLD=$(abspath $(TARGET_CLANG_PATH)/ld.lld) \
         HOSTLDFLAGS=-fuse-ld=lld \
-        HOSTAR=$(abspath $(TARGET_CLANG_PATH)/llvm-ar)
+		HOSTAR=$(abspath $(TARGET_CLANG_PATH)/llvm-ar) \
+		LLVM_LINK=$(abspath $(TARGET_CLANG_PATH)/llvm-link) \
+        RUSTC=$(RUST_BIN_DIR)/rustc \
+        HOSTRUSTC=$(RUST_BIN_DIR)/rustc \
+        BINDGEN=$(BINDGEN_BIN_DIR)/bindgen \
+        RUSTFMT=$(RUST_BIN_DIR)/rustfmt \
+        CLIPPY=$(RUST_BIN_DIR)/clippy-driver \
+        LIBCLANG_PATH=$(LIBCLANG_DIR)
 else
 $(error not implemented)
 endif
@@ -86,11 +110,10 @@ $(BUILT_KERNEL_TARGET): $(KERNEL_DOTCONFIG_FILE) $(M4) $(LEX) $(BISON)
 	# A dirty hack to use ar & ld
 	$(mk_kernel) olddefconfig
 	$(mk_kernel) $(KERNEL_TARGET) $(if $(MOD_ENABLED),modules)
-	$(COPY_FIRMWARE_SCRIPT) --zstd -v $(FIRMWARE_DEST)
-	$(if $(TARGET_HAS_SILEAD_FIRMWARE), $(COPY_FIRMWARE_SILEAD_SCRIPT) --zstd -v $(FIRMWARE_DEST))
-	$(if $(TARGET_HAS_SOF_FIRMWARE), FW_DEST=$(FIRMWARE_DEST)/intel FW_LOCATION=$(SOF_FIRMWARE_DIR) $(COPY_FIRMWARE_SOF_SCRIPT) $(SOF_FIRMWARE_VERSION))
 	$(if $(FIRMWARE_ENABLED),$(mk_kernel) INSTALL_MOD_PATH=$(abspath $(TARGET_OUT)) firmware_install)
-	$(hide) cp $@ $(INSTALLED_KERNELIMAGE_TARGET)
+
+$(INSTALLED_KERNELIMAGE_TARGET): $(BUILT_KERNEL_TARGET)
+	$(hide) cp $(BUILT_KERNEL_TARGET) $(INSTALLED_KERNELIMAGE_TARGET)
 
 ifneq ($(MOD_ENABLED),)
 KERNEL_MODULES_DEP := $(firstword $(wildcard $(TARGET_OUT)/lib/modules/*/modules.dep))
@@ -112,12 +135,48 @@ $(KERNEL_MODULES_DEP): $(BUILT_KERNEL_TARGET) $(ALL_EXTRA_MODULES)
 	$(hide) rm -f $(TARGET_OUT)/lib/modules/*/{build,source}
 endif
 
-$(BUILT_SYSTEMIMAGE): $(KERNEL_MODULES_DEP)
+# Define the actual output markers (using a timestamp or dummy file in the vendor directory)
+FIRMWARE_INTERMEDIATES := $(call intermediates-dir-for,PACKAGING,firmware)
+FIRMWARE_SOF_DEP := $(FIRMWARE_INTERMEDIATES)/sof_done
+FIRMWARE_SILEAD_DEP := $(FIRMWARE_INTERMEDIATES)/silead_done
+FIRMWARE_GENERIC_DEP := $(FIRMWARE_INTERMEDIATES)/generic_done
+
+# Target for SOF Firmware
+$(FIRMWARE_SOF_DEP): $(SOF_FIRMWARE_DIR)/install.sh
+	@echo "Copying SOF firmware..."
+	$(hide) mkdir -p $(FIRMWARE_DEST)
+	$(hide) FW_DEST=$(FIRMWARE_DEST)/intel FW_LOCATION=$(SOF_FIRMWARE_DIR) \
+		/bin/sh $(COPY_FIRMWARE_SOF_SCRIPT) $(VER)
+	$(hide) touch $@
+
+# Target for Silead Firmware
+$(FIRMWARE_SILEAD_DEP):
+	@echo "Copying Silead firmware..."
+	$(hide) mkdir -p $(FIRMWARE_DEST)
+	$(hide) /bin/sh $(COPY_FIRMWARE_SILEAD_SCRIPT) --zstd $(FIRMWARE_DEST)
+	$(hide) touch $@
+
+# Target for Generic Firmware
+$(FIRMWARE_GENERIC_DEP):
+	@echo "Copying generic firmware..."
+	$(hide) mkdir -p $(FIRMWARE_DEST)
+	$(hide) /bin/sh $(COPY_FIRMWARE_SCRIPT) --zstd $(FIRMWARE_DEST)
+	$(hide) touch $@
+
+# Global Firmware Alias
+firmware_sof: $(FIRMWARE_SOF_DEP)
+firmware_silead: $(FIRMWARE_SILEAD_DEP)
+firmware_generic: $(FIRMWARE_GENERIC_DEP)
+
+firmware_all: firmware_sof firmware_silead firmware_generic
+
+$(BUILT_SYSTEMIMAGE): $(KERNEL_MODULES_DEP) $(FIRMWARE_SOF_DEP) $(FIRMWARE_SILEAD_DEP) $(FIRMWARE_GENERIC_DEP)
 
 installclean: FILES += $(KBUILD_OUTPUT) $(INSTALLED_KERNEL_TARGET)
 
 TARGET_PREBUILT_KERNEL := $(BUILT_KERNEL_TARGET)
 
+.PHONY: firmware_sof firmware_silead firmware_generic firmware_all
 .PHONY: kernel
 kernel: $(INSTALLED_KERNEL_TARGET) $(KERNEL_MODULES_DEP)
 

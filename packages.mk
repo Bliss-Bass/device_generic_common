@@ -38,7 +38,6 @@ PRODUCT_PACKAGES := \
     ssh \
     sshd \
     tablet-mode \
-    v86d \
     wacom-input \
 
 ifeq ($(IS_GO_VERSION), true)
@@ -120,9 +119,6 @@ PRODUCT_PACKAGES_DEBUG := \
     mcaptest \
     rctest \
 
-PRODUCT_HOST_PACKAGES := \
-    qemu-android \
-
 #
 # Packages for AOSP-available stuff we use from the framework
 #
@@ -141,11 +137,16 @@ PRODUCT_PACKAGES += \
     libaptX_encoder \
     libaptXHD_encoder
 
+# usb.ids & pci.ids
+PRODUCT_PACKAGES += usb.ids pci.ids
+
+# wireless-regdb
+PRODUCT_PACKAGES += regulatory.db regulatory.db.p7s
+
 ## Enable hidden features on Android
 PRODUCT_PACKAGES += \
 	pc.xml \
-	hpe.xml \
-	device.prop
+	hpe.xml
 
 ifeq ($(USE_BLISS_SETUPWIZARD), true)
 
@@ -155,7 +156,7 @@ PRODUCT_PACKAGES += \
 endif
 
 # Some additional CLI programs
-PRODUCT_PACKAGES += tput dialog alsa-info.sh tree lspci dmidecode
+PRODUCT_PACKAGES += tput dialog alsa-info.sh tree lspci dmidecode evtest efibootmgr
 
 # SeedVault
 PRODUCT_PACKAGES += \
@@ -199,10 +200,18 @@ endif
 
 # Surface specific
 ifeq ($(BOARD_IS_SURFACE_BUILD),true)
-PRODUCT_PACKAGES += iptsd_runner iptsd \
+PRODUCT_PACKAGES += set_iptsd_device iptsd \
                     iptsd-find-hidraw \
                     iptsd-calibrate \
                     iptsd-check-device \
                     iptsd-dump \
                     iptsd-perf
 endif
+
+# For Recovery
+## DHCP client
+PRODUCT_PACKAGES += \
+    x86_dhcpclient.recovery
+
+# A collection of scripts at scripts/
+PRODUCT_PACKAGES += blisspath boot-mode-selection.sh recovery.bms.sh

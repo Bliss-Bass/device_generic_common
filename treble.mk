@@ -4,11 +4,13 @@ PRODUCT_PACKAGES += \
     android.hardware.graphics.mapper@4.0-impl.minigbm \
     android.hardware.graphics.mapper@4.0-impl.minigbm_arcvm\
     android.hardware.graphics.mapper@4.0-impl.minigbm_gbm_mesa \
+    android.hardware.graphics.mapper@4.0-impl.minigbm_nouveau \
     android.hardware.graphics.allocator@2.0-impl \
     android.hardware.graphics.allocator@2.0-service \
     android.hardware.graphics.allocator@4.0-service.minigbm \
     android.hardware.graphics.allocator@4.0-service.minigbm_arcvm \
-    android.hardware.graphics.allocator@4.0-service.minigbm_gbm_mesa
+    android.hardware.graphics.allocator@4.0-service.minigbm_gbm_mesa \
+    android.hardware.graphics.allocator@4.0-service.minigbm_nouveau
 
 # HWComposer HAL
 PRODUCT_PACKAGES += \
@@ -118,6 +120,19 @@ PRODUCT_PACKAGES += \
 # Thermal HAL
 PRODUCT_PACKAGES += \
     android.hardware.thermal@2.0-service.intel
+
+PRODUCT_SOONG_NAMESPACES += \
+    hardware/google/camera \
+    hardware/google/camera/devices/EmulatedCamera \
+
+PRODUCT_PACKAGES += \
+    android.hardware.camera.provider@2.5-service-google \
+    libgooglecamerahwl_impl
+
+PRODUCT_COPY_FILES += \
+    hardware/google/camera/devices/EmulatedCamera/hwl/configs/emu_camera_back.json:$(TARGET_COPY_OUT_VENDOR)/etc/config/emu_camera_back.json \
+    hardware/google/camera/devices/EmulatedCamera/hwl/configs/emu_camera_front.json:$(TARGET_COPY_OUT_VENDOR)/etc/config/emu_camera_front.json \
+    hardware/google/camera/devices/EmulatedCamera/hwl/configs/emu_camera_depth.json:$(TARGET_COPY_OUT_VENDOR)/etc/config/emu_camera_depth.json
 
 # vndservicemanager
 PRODUCT_PACKAGES += vndservicemanager

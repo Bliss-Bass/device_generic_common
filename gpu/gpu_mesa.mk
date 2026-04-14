@@ -11,15 +11,16 @@
 PRODUCT_PACKAGES := \
     hwcomposer.drm hwcomposer.drm_minigbm hwcomposer.drm_celadon hwcomposer.drm_minigbm_celadon \
     hwcomposer.drm_gbm_cros hwcomposer.drm_gbm_cros_celadon \
-    gralloc.minigbm_dmabuf gralloc.minigbm gralloc.minigbm_arcvm gralloc.minigbm_gbm_mesa \
+    gralloc.minigbm_dmabuf gralloc.minigbm gralloc.minigbm_arcvm gralloc.minigbm_gbm_mesa gralloc.minigbm_nouveau \
     gralloc.gbm gralloc.gbm_hack gralloc.gbm_noscanout \
     libGLES_mesa    \
     libtxc_dxtn     \
     modetest \
     vulkan.intel \
     vulkan.intel_hasvk \
-    vulkan.amd \
+    vulkan.radeon \
     vulkan.virtio \
+    vulkan.nouveau \
     vulkan.lvp \
     libEGL_angle \
     libGLESv1_CM_angle \
@@ -36,6 +37,7 @@ PRODUCT_PACKAGES += \
     libgallium_dri \
     libglapi \
     libgbm_mesa_wrapper \
+    dri_gbm \
     i965_drv_video \
     crocus_drv_video \
     iHD_drv_video \

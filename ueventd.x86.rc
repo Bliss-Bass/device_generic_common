@@ -11,7 +11,6 @@
 /sys/devices/pci*/0000:00:*/usb*/*/*/*/bluetooth/hci0/rfkill* state  0660 bluetooth bluetooth
 /sys/devices/pci*/0000:00:*/usb*/*/*/*/bluetooth/hci0/rfkill* type   0440 bluetooth bluetooth
 /dev/rfkill               0660  bluetooth     wifi
-/dev/uhid                 0660  bluetooth     bluetooth
 /dev/bus/usb/00*/00*               0660 bluetooth bluetooth
 
 /sys/devices/system/cpu/cpu*    online        0664   system     system
@@ -21,9 +20,5 @@
 /sys/devices/virtual/thermal/thermal_zone*      trip_point_1_temp    0644 system system
 /dev/acpi_thermal_rel                                                0600 system system
 
-# allow binderized sensor hal access input devices
-# note that binderize cannot happen until all sensor hals are ready
-/dev/input/event* 0660 system system
-/dev/hidraw*      0660 system system
-# steamdeck virtual controller built into deck sensor hal
-/dev/uinput       0660 system system
+# add hidraw devices to the uhid group
+/dev/hidraw*      0660 uhid uhid

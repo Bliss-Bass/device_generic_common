@@ -61,9 +61,6 @@ function init_misc()
 		echo passive > /sys/devices/system/cpu/intel_pstate/status
 	fi
 
-	# enable sdcardfs if /data is not mounted on tmpfs or 9p
-	#mount | grep /data\ | grep -qE 'tmpfs|9p'
-	#[ $? -eq 0 ] && set_prop_if_empty ro.sys.sdcardfs false
 	# enable sdcardfs/esdfs if /data is not mounted on tmpfs or 9p
 	mount | grep /data\ | grep -qE 'tmpfs|9p'
 	[ $? -eq 0 ] && SDCARDFS_DISABLE=${SDCARDFS_DISABLE:-1}
@@ -73,6 +70,9 @@ function init_misc()
 	# Allow force disable sdcardfs/esdfs
 	if [ "$SDCARDFS_DISABLE" -ge 1 ]; then
 		set_property external_storage.sdcardfs.enabled false
+		set_property persist.sys.fuse.passthrough.enable false
+	else
+		set_property persist.sys.fuse.passthrough.enable true
 	fi
 
 	# remove wl if it's not used
@@ -96,6 +96,14 @@ function init_misc()
 		fi
 	fi
 
+	# Tell vold to use ntfs3 driver instead of ntfs-3g
+    if [ "$USE_NTFS3" -ge "1" ] || [ "$VOLD_USE_NTFS3" -ge 1 ]; then
+        set_property ro.vold.use_ntfs3 true
+    fi
+
+    if [ "$DEBUG_VSOCK" -ge "1" ]; then
+        set_property service.adb.listen_addrs "vsock:5555"
+    fi
 }
 
 function init_hal_audio()
@@ -200,62 +208,96 @@ function init_hal_brcm_wifi()
 
 function init_hal_audio_bootcomplete()
 {
-	if [ "$BOARD" == "Jupiter" ] && [ "$VENDOR" == "Valve" ]
-	then
-		alsaucm -c Valve-Jupiter-1 set _verb HiFi
+	if [ -e "/data/vendor/asound.state" ]; then
+		# Initialize once in case a new audio device is plugged in
+		alsa_ctl init
+		# Restore /data/vendor/asound.state if found
+		alsa_ctl restore
+	else
+		# Initialize as usual
+		# 1. Initialize the all the audio cards
+		alsa_ctl init
 
-		pcm_card=$(cat /proc/asound/cards | grep acp5x | awk '{print $1}')
-		# headset microphone on d0, 32bit only
-		amixer -c ${pcm_card} sset 'Headset Mic',0 on
+		# 2. Restore alsa state for specific cards or turn on all of the 
+		# default controls & set value to max (usually for PCH)
+		for c in $(grep '\[.*\]' /proc/asound/cards | awk '{print $1}'); do
+			f=/system/etc/alsa/$(cat /proc/asound/card$c/id).state
+			d=/data/vendor/alsa/$(cat /proc/asound/card$c/id).state
+			if [ -e $f ]; then
+				alsa_ctl -f $f restore $c
+			elif [ -e $d ]; then
+				alsa_ctl -f $d restore $c
+			else
+				alsa_amixer -c $c set Master on
+				alsa_amixer -c $c set Master 100%
+				alsa_amixer -c $c set Headphone on
+				alsa_amixer -c $c set Headphone 100%
+				alsa_amixer -c $c set Speaker on
+				alsa_amixer -c $c set Speaker 100%
+				alsa_amixer -c $c set Capture 80%
+				alsa_amixer -c $c set Capture cap
+				alsa_amixer -c $c set PCM 100% unmute
+				alsa_amixer -c $c set SPO unmute
+				alsa_amixer -c $c set IEC958 on
+				alsa_amixer -c $c set 'Mic Boost' 1
+				alsa_amixer -c $c set 'Internal Mic Boost' 1
 
-		# internal microphone on d0, 32bit only
-		amixer -c ${pcm_card} sset 'Int Mic',0 on
-		amixer -c ${pcm_card} sset 'DMIC Enable',0 on
+				# 2.5. Set alsaucm HiFi verb & devices for specific hardware
+				for d in $(grep '\[.*\]' /proc/asound/cards | awk '{print $4}'); do
+					# Check if the card is rt5651, this card can not be able to 
+					# use both Speaker & Headphones at the same time. So we will enable  
+					# only Speaker for this card and tell users to turn Headphones on
+					# manually if they want to use it.
+					if [ "$(cat /proc/asound/cards | grep rt5651)" ]; then 
+						card_is_rt5651=true
+					fi
 
-		# headphone jack on d0, 32bit only
-		amixer -c ${pcm_card} sset 'Headphone',0 on
+					case $d in
+					*bytcht*|*bytcr*|*cht-bsw*|*chtmax*|*chtrt*|*chtnau*)
+						if [ "$card_is_rt5651" == true ]; then
+							alsaucm -c $d set _verb HiFi \
+							set _enadev Speaker \
+							set _enadev Headset \
+							set _enadev Mic
+						else 
+							alsaucm -c $d set _verb HiFi \
+							set _enadev Speaker \
+							set _enadev Headphones \
+							set _enadev Headset \
+							set _enadev Mic
+						fi
+						;;
+					*SOF*)
+						if [ "$(cat /proc/asound/cards | grep -E 'bytcht|bdw')" ]; then
+							if [ "$card_is_rt5651" == true ]; then
+								alsaucm -c $d set _verb HiFi \
+								set _enadev Speaker \
+								set _enadev Headset \
+								set _enadev Mic
+							else
+								alsaucm -c $d set _verb HiFi \
+								set _enadev Speaker \
+								set _enadev Headphones \
+								set _enadev Headset \
+								set _enadev Mic
+							fi
+						fi
+						;;
+					*acp5x*)
+						alsaucm -c $d set _verb HiFi \
+						set _enadev Speaker \
+						set _enadev Headphones \
+						set _enadev Headset \
+						set _enadev Mic
+						;;
+					esac
+				done
+			fi
+		done
 
-		# speaker on d1, 16bit only
-		amixer -c ${pcm_card} sset 'Left DSP RX1 Source',0 ASPRX1
-		amixer -c ${pcm_card} sset 'Right DSP RX1 Source',0 ASPRX2
-		amixer -c ${pcm_card} sset 'Left DSP RX2 Source',0 ASPRX1
-		amixer -c ${pcm_card} sset 'Right DSP RX2 Source',0 ASPRX2
-		amixer -c ${pcm_card} sset 'Left DSP1 Preload',0 on
-		amixer -c ${pcm_card} sset 'Right DSP1 Preload',0 on
-
-		# unmute them all
-		amixer -c ${pcm_card} sset 'IEC958',0 on
-		amixer -c ${pcm_card} sset 'IEC958',1 on
-		amixer -c ${pcm_card} sset 'IEC958',2 on
-		amixer -c ${pcm_card} sset 'IEC958',3 on
+		# 3. Store everything into /data/vendor/asound.state
+		alsa_ctl store
 	fi
-
-#	[ -d /proc/asound/card0 ] || modprobe snd-dummy
-	for c in $(grep '\[.*\]' /proc/asound/cards | awk '{print $1}'); do
-		f=/system/etc/alsa/$(cat /proc/asound/card$c/id).state
-		if [ -e $f ]; then
-			alsa_ctl -f $f restore $c
-		else
-			alsa_ctl init $c
-			alsa_amixer -c $c set Master on
-			alsa_amixer -c $c set Master 100%
-			alsa_amixer -c $c set Headphone on
-			alsa_amixer -c $c set Headphone 100%
-			alsa_amixer -c $c set Speaker on
-			alsa_amixer -c $c set Speaker 100%
-			alsa_amixer -c $c set Capture 80%
-			alsa_amixer -c $c set Capture cap
-			alsa_amixer -c $c set PCM 100% unmute
-			alsa_amixer -c $c set SPO unmute
-			alsa_amixer -c $c set IEC958 on
-			alsa_amixer -c $c set 'Mic Boost' 1
-			alsa_amixer -c $c set 'Internal Mic Boost' 1
-		fi
-		d=/data/vendor/alsa/$(cat /proc/asound/card$c/id).state
-		if [ -e $d ]; then
-			alsa_ctl -f $d restore $c
-		fi
-	done
 }
 
 function init_bcm_wireless()
@@ -335,18 +377,9 @@ function init_hal_bluetooth()
 
 function init_hal_camera()
 {
-	case "$UEVENT" in
-		*e-tabPro*)
-			set_prop_if_empty hal.camera.0 0,270
-			set_prop_if_empty hal.camera.2 1,90
-			;;
-		*LenovoideapadD330*)
-			set_prop_if_empty hal.camera.0 0,90
-			set_prop_if_empty hal.camera.2 1,90
-			;;
-		*)
-			;;
-	esac
+	if [ "$EMULATED_CAMERA" == "1" ]; then
+		start vendor.camera-provider-2-5-google
+	fi
 }
 
 function init_hal_gps()
@@ -369,53 +402,88 @@ function set_drm_mode()
 	[ -n "$drm_mode" ] && set_property debug.drm.mode.force $drm_mode
 }
 
-function init_uvesafb()
-{
-	UVESA_MODE=${UVESA_MODE:-${video%@*}}
-
-	case "$PRODUCT" in
-		ET2002*)
-			UVESA_MODE=${UVESA_MODE:-1600x900}
-			;;
-		*)
-			;;
-	esac
-
-	modprobe uvesafb mode_option=${UVESA_MODE:-1024x768}-32 ${UVESA_OPTION:-mtrr=3 scroll=redraw} v86d=/system/bin/v86d
-}
-
 function init_hal_gralloc()
 {
-	case "$(readlink /sys/class/graphics/fb0/device/driver)" in
+	# Only search for a card if GPU_OVERRIDE hasn't already been set
+	# 
+	# There is a tested case that when init_hal_gralloc() start, simpledrm still haven't 
+	# properly uninitialize yet, making /dev/dri/card0 still be able to exist and
+	# we accidentally pick it. Search to see if the remains of simpledrm is still here 
+	# and put in another for loop and run until we get the correct result.
+	if [ -z "$GPU_OVERRIDE" ]; then
+		# Loop with a timeout (e.g., 20 attempts, 0.5s each = 10 seconds max)
+		for attempt in $(seq 1 20); do
+			for i in $(seq 0 9); do
+				if [ -c "/dev/dri/card$i" ]; then
+					local driver_name=""
+					
+					if [ -L "/sys/class/drm/card$i/device/driver" ]; then
+						driver_name=$(basename $(readlink /sys/class/drm/card$i/device/driver))
+					elif [ -f "/sys/class/drm/card$i/device/uevent" ]; then
+						driver_name=$(grep DRIVER= /sys/class/drm/card$i/device/uevent | cut -d= -f2)
+					fi
+
+					# Ignore simple framebuffers or unpopulated sysfs entries
+					if [[ "$driver_name" == *simple* ]] || [ -z "$driver_name" ]; then
+						if [ "$HWACCEL" != "0" ]; then
+							continue
+						fi
+					fi
+
+					GPU_OVERRIDE="card$i"
+					break 2
+				fi
+			done
+			sleep 0.5
+		done
+	fi
+
+	# Fallback just in case /dev/dri is completely empty or inaccessible
+	GPU_OVERRIDE=${GPU_OVERRIDE:-card0}
+
+	# Set default GPU render
+	set_property gralloc.gbm.device /dev/dri/$GPU_OVERRIDE
+	set_property vendor.hwc.drm.device /dev/dri/$GPU_OVERRIDE
+
+	case "$GPU" in
 		*virtio_gpu|*virtio-pci)
-			HWC=${HWC:-drm_minigbm_celadon}
+			HWC=${HWC:-drm_minigbm}
 			GRALLOC=${GRALLOC:-minigbm_arcvm}
 			#video=${video:-1280x768}
+			set_property ro.vendor.hwc.drm.present_fence_not_reliable true
 			;&
 		*nouveau)
-			GRALLOC=${GRALLOC:-gbm_hack}
-			HWC=${HWC:-drm_celadon}
+			GRALLOC=${GRALLOC:-minigbm_gbm_mesa}
+			HWC=${HWC:-drm_minigbm}
 			;&
 		*i915)
-			if [ "$(cat /sys/kernel/debug/dri/0/i915_capabilities | grep -e 'gen' -e 'graphics version' | awk '{print $NF}')" -gt 9 ]; then
-				HWC=${HWC:-drm_minigbm_celadon}
-				GRALLOC=${GRALLOC:-minigbm}
+			I915_GPU_GEN=$(cat /sys/kernel/debug/dri/${GPU_OVERRIDE#card}/i915_capabilities 2>/dev/null |
+				grep -e 'gen' -e 'graphics version' |
+				awk '{print $NF}')
+
+			if [ "$I915_GPU_GEN" -lt 9 ]; then
+				set_property vendor.hwc.drm.avoid_using_alpha_bits_for_framebuffer 1
+				set_property vendor.hwc.drm.disable_planes 1
 			fi
-			;&
-		*amdgpu)
-			HWC=${HWC:-drm_minigbm_celadon}
+			HWC=${HWC:-drm_minigbm}
 			GRALLOC=${GRALLOC:-minigbm}
 			;&
-		*radeon|*vmwgfx*)
-			if [ "$HWACCEL" != "0" ]; then
+		*amdgpu|*vmwgfx*|*xe)
+			GRALLOC=${GRALLOC:-minigbm}
+			HWC=${HWC:-drm_minigbm}
+			;&
+		*radeon)
+			# Remove when Virtualbox got svga working well
+		    if { [[ "$BOARD" != *VirtualBox* ]] && 
+				 [ "$HWACCEL" != "0" ]; } || 
+				 [ "$HWACCEL" == "1" ]; then
 				${HWC:+set_property ro.hardware.hwcomposer $HWC}
 				set_property ro.hardware.gralloc ${GRALLOC:-gbm}
 				set_drm_mode
+			else
+				export HWACCEL=0
 			fi
 			;;
-		"")
-			init_uvesafb
-			;&
 		*)
 			export HWACCEL=0
 			;;
@@ -434,6 +502,9 @@ function init_hal_gralloc()
 			minigbm_gbm_mesa)
 				start vendor.graphics.allocator-4-0-gbm_mesa
 			;;
+			minigbm_nouveau)
+				start vendor.graphics.allocator-4-0-nouveau
+			;;
 			*)
 			;;
 		esac
@@ -449,35 +520,42 @@ function init_hal_gralloc()
 function init_egl()
 {
 
-	if [ "$HWACCEL" != "0" ]; then
-		if [ "$ANGLE" == "1" ]; then
-			set_property ro.hardware.egl angle
-		else
-			set_property ro.hardware.egl mesa
-		fi
-	else
-		if [ "$ANGLE" == "1" ]; then
-			set_property ro.hardware.egl angle
-		else
-			set_property ro.hardware.egl swiftshader
-		fi
-		set_property ro.hardware.vulkan pastel
-		start vendor.hwcomposer-2-1
+	# Remove when Virtualbox got svga working well
+    if [[ "$BOARD" == *VirtualBox* ]]; then
+        export HWACCEL=0
+    fi
+
+	if [ "$HWACCEL" == "0" ] && [ "$MESA_LLVMPIPE" != "1" ]; then
+		export EGL=${EGL:-angle}
+	fi
+
+	set_property ro.hardware.egl ${EGL:-mesa}
+
+	if [ "$MESA_LLVMPIPE" -ge "1" ]; then
+		set_property mesa.libgl.always.software true
+	fi
+
+	if [ "$MESA_ZINK" -ge "1" ]; then
+		set_property mesa.loader.driver.override zink
 	fi
 
 	# Set OpenGLES version
 	case "$FORCE_GLES" in
+		*2.0*)
+    	    set_property ro.opengles.version 131072
+            set_property mesa.gles.version.override 2.0
+		;;
         *3.0*)
     	    set_property ro.opengles.version 196608
-            export MESA_GLES_VERSION_OVERRIDE=3.0
+            set_property mesa.gles.version.override 3.0
 		;;
 		*3.1*)
     		set_property ro.opengles.version 196609
-			export MESA_GLES_VERSION_OVERRIDE=3.1
+            set_property mesa.gles.version.override 3.1
 		;;
 		*3.2*)
     		set_property ro.opengles.version 196610
-			export MESA_GLES_VERSION_OVERRIDE=3.2
+            set_property mesa.gles.version.override 3.2
 		;;
 		*)
     		set_property ro.opengles.version 196608
@@ -490,43 +568,37 @@ function init_egl()
 	else
 		set_property debug.renderengine.backend $FORCE_RENDERENGINE
 	fi
-
-	# Set default GPU render
-	if [ -z ${GPU_OVERRIDE+x} ]; then
-		echo ""
-	else
-		set_property gralloc.gbm.device /dev/dri/$GPU_OVERRIDE
-		set_property vendor.hwc.drm.device /dev/dri/$GPU_OVERRIDE
-		set_property hwc.drm.device /dev/dri/$GPU_OVERRIDE
-	fi
-
 }
 
 function init_hal_hwcomposer()
 {
-	# TODO
-	if [ "$HWACCEL" != "0" ]; then
-		if [ "$HWC" = "default" ]; then
-			if [ "$HWC_IS_DRMFB" = "1" ]; then
-				set_property debug.sf.hwc_service_name drmfb
-				start vendor.hwcomposer-2-1.drmfb
-			else
-				set_property debug.sf.hwc_service_name default
-				start vendor.hwcomposer-2-1
-			fi
-		else
+	if [ "$HWACCEL" == "0" ] || 
+	[[ "$GPU" == *radeon* ]]; then
+		export HWC_HIDL=${HWC_HIDL:-default-2.1}
+	fi
+
+	case "$HWC_HIDL" in
+		drmfb)
+			set_property debug.sf.hwc_service_name drmfb
+			start vendor.hwcomposer-2-1.drmfb
+			;;
+		default-2.1)
+			set_property debug.sf.hwc_service_name default
+			start vendor.hwcomposer-2-1
+			;;
+		default-2.4|*)
 			set_property debug.sf.hwc_service_name default
 			start vendor.hwcomposer-2-4
+			;;
+	esac
 
-			if [[ "$HWC" == "drm_celadon" || "$HWC" == "drm_minigbm_celadon" ]]; then
-				set_property vendor.hwcomposer.planes.enabling $MULTI_PLANE
-				set_property vendor.hwcomposer.planes.num $MULTI_PLANE_NUM
-				set_property vendor.hwcomposer.preferred.mode.limit $HWC_PREFER_MODE
-				set_property vendor.hwcomposer.connector.id $CONNECTOR_ID
-				set_property vendor.hwcomposer.mode.id $MODE_ID
-				set_property vendor.hwcomposer.connector.multi_refresh_rate $MULTI_REFRESH_RATE
-			fi
-		fi
+	if [[ "$HWC" == "drm_celadon" || "$HWC" == "drm_minigbm_celadon" ]]; then
+		set_property vendor.hwcomposer.planes.enabling $MULTI_PLANE
+		set_property vendor.hwcomposer.planes.num $MULTI_PLANE_NUM
+		set_property vendor.hwcomposer.preferred.mode.limit $HWC_PREFER_MODE
+		set_property vendor.hwcomposer.connector.id $CONNECTOR_ID
+		set_property vendor.hwcomposer.mode.id $MODE_ID
+		set_property vendor.hwcomposer.connector.multi_refresh_rate $MULTI_REFRESH_RATE
 	fi
 }
 
@@ -544,11 +616,6 @@ function init_hal_media()
 		set_property ro.yuv420.disable true
 	else
 		set_property ro.yuv420.disable false
-	fi
-
-	if [ "$BOARD" == "Jupiter" ] && [ "$VENDOR" == "Valve" ]
-	then
-		FFMPEG_CODEC2_PREFER=${FFMPEG_CODEC2_PREFER:-1}
 	fi
 
 #FFMPEG Codec Setup
@@ -572,12 +639,6 @@ function init_hal_media()
     else
         set_property media.sf.hwaccel 1
     fi
-## Put c2.ffmpeg to the highest rank amongst the media codecs
-    if [ "$FFMPEG_CODEC2_PREFER" -ge "1" ]; then
-        set_property debug.ffmpeg-codec2.rank 0
-    else
-        set_property debug.ffmpeg-codec2.rank 4294967295
-    fi
 ## FFMPEG deinterlace, we will put both software mode and VA-API one here
 	if [ -z "${FFMPEG_CODEC2_DEINTERLACE+x}" ]; then
 		echo ""
@@ -597,28 +658,56 @@ function init_hal_media()
 	    set_property debug.ffmpeg-codec2.hwaccel.drm 0
 	fi
 
+## Handle which GPU driver will use which pixel format
+## c2.ffmpeg can be able to switch now
+	case "$GPU" in
+		*virtio_gpu|*virtio-pci|*nouveau|*radeon)
+			set_property persist.ffmpeg-codec2.pixel_format RGBX_8888
+			;;
+		*i915|*xe|*amdgpu)
+			if [ "$(getprop ro.hardware.gralloc)" != "minigbm" ]; then
+				set_property persist.ffmpeg-codec2.pixel_format RGBX_8888
+			else
+				set_property persist.ffmpeg-codec2.pixel_format YUV_420
+			fi
+			;;
+		*)
+			set_property persist.ffmpeg-codec2.pixel_format RGB_565
+			;;
+	esac
+
 }
 
 function init_hal_vulkan()
 {
-	case "$(readlink /sys/class/graphics/fb0/device/driver)" in
-		*i915)
-			if [ "$(cat /sys/kernel/debug/dri/0/i915_capabilities | grep -e 'gen' -e 'graphics version' | awk '{print $NF}')" -lt 9 ]; then
-				set_property ro.hardware.vulkan intel_hasvk
-			else
-				set_property ro.hardware.vulkan intel
-			fi
-			;;
-		*amdgpu)
-			set_property ro.hardware.vulkan amd
-			;;
-		*virtio_gpu|*virtio-pci)
-			set_property ro.hardware.vulkan virtio
-			;;
-		*)
-			set_property ro.hardware.vulkan pastel
-			;;
-	esac
+	if [ "$HWACCEL" != "0" ]; then
+		case "$GPU" in
+			*i915)
+				if [ "$I915_GPU_GEN" -lt 9 ]; then
+					VULKAN=${VULKAN:-intel_hasvk}
+				else
+					VULKAN=${VULKAN:-intel}
+				fi
+				;&
+			*xe)
+				VULKAN=${VULKAN:-intel}
+				;&
+			*amdgpu)
+				VULKAN=${VULKAN:-radeon}
+				;&
+			*virtio_gpu|*virtio-pci)
+				VULKAN=${VULKAN:-virtio}
+				;&
+			*nouveau)
+				VULKAN=${VULKAN:-nouveau}
+				;&
+			*)
+				set_property ro.hardware.vulkan ${VULKAN:-pastel}
+				;;
+		esac
+	else
+		set_property ro.hardware.vulkan ${VULKAN:-pastel}
+	fi
 }
 
 function init_hal_lights()
@@ -635,10 +724,10 @@ function init_hal_power()
 	# TODO
 	case "$PRODUCT" in
 		HP*Omni*|OEMB|Standard*PC*|Surface*3|T10*TA|VMware*)
-			SLEEP_STATE=none
+			export SLEEP_STATE=${SLEEP_STATE:-none}
 			;;
 		e-tab*Pro)
-			SLEEP_STATE=force
+			export SLEEP_STATE=${SLEEP_STATE:-force}
 			;;
 		*TAIFAElimuTab*)
 			setprop sleep.earlysuspend 1
@@ -663,19 +752,37 @@ function init_hal_power()
 
 function init_hal_thermal()
 {
-	#thermal-daemon test, pulled from Project Celadon
-	case "$(cat /sys/class/dmi/id/chassis_vendor | head -1)" in 
-	QEMU)
-		setprop vendor.thermal.enable 0
-		;;
-	*)
-		setprop vendor.thermal.enable 1
-		;;
-	esac
+    # Check if thermald needs to be disabled
+    # 1. VMs (QEMU, VMware, Oracle VirtualBox)
+    # 2. AMD CPUs
+    case "$VENDOR" in
+        *QEMU*|*VMware*)
+            export THERMALD_DISABLE=${THERMALD_DISABLE:-1}
+            ;;
+        *)
+            ;;
+    esac
+
+    if [[ "$BOARD" == *VirtualBox* ]]; then
+        export THERMALD_DISABLE=${THERMALD_DISABLE:-1}
+    fi
+
+    if grep -q "AuthenticAMD" /proc/cpuinfo; then
+        export THERMALD_DISABLE=${THERMALD_DISABLE:-1}
+    fi
+
+    if [ "$THERMALD_DISABLE" -lt 1 ]; then
+        start thermal-daemon
+    fi
 }
 
 function init_hal_sensors()
 {
+	# Pause for amount of seconds before initializing sensors
+	if [ -n "$SENSORS_DELAY_INIT" ]; then
+		sleep "$SENSORS_DELAY_INIT"
+	fi
+
     if [ "$SENSORS_FORCE_KBDSENSOR" == "1" ]; then
         # Option to force kbd sensor
         hal_sensors=kbd
@@ -704,7 +811,7 @@ function init_hal_sensors()
                 modprobe lis3lv02d_i2c
                 echo -n "enabled" > /sys/class/thermal/thermal_zone0/mode
                 ;;
-            *Aspire*SW5-012*)
+            *Aspire*SW5-012*|*Venue*8*Pro*3845*|*ST70416-6*|*Akoya*P2213T*)
                 set_property ro.iio.accel.order 102
                 ;;
             *LenovoideapadD330*)
@@ -715,29 +822,16 @@ function init_hal_sensors()
                 set_property ro.iio.accel.x.opt_scale -1
                 set_property ro.iio.accel.z.opt_scale -1
                 ;;
-            *i7Stylus*|*M80TA*)
+            *i7Stylus*|*SARY*TAB3*)
                 set_property ro.iio.accel.x.opt_scale -1
                 ;;
-            *LenovoMIIX320*|*ONDATablet*)
+            *LenovoMIIX320*|*MIIX510*|*MIIX300-10IBY*|*ONDATablet*| \
+			*TECLAST*X4*|*SF133AYR110*|*SolTIVW*)
                 set_property ro.iio.accel.order 102
                 set_property ro.iio.accel.x.opt_scale -1
                 set_property ro.iio.accel.y.opt_scale -1
                 ;;
-            *Venue*8*Pro*3845*)
-                set_property ro.iio.accel.order 102
-                ;;
-            *ST70416-6*)
-                set_property ro.iio.accel.order 102
-                ;;
-            *T*0*TA*|*M80TA*)
-                set_property ro.iio.accel.y.opt_scale -1
-                ;;
-			*Akoya*P2213T*)
-				set_property ro.iio.accel.order 102
-				;;
-            *TECLAST*X4*|*SF133AYR110*)
-                set_property ro.iio.accel.order 102
-                set_property ro.iio.accel.x.opt_scale -1
+            *Hi10*plus*|*T*0*TA*|*M80TA*|*TECLAST*X16*)
                 set_property ro.iio.accel.y.opt_scale -1
                 ;;
 			*TAIFAElimuTab*)
@@ -856,9 +950,19 @@ function init_hal_sensors()
 
 function init_hal_surface()
 {
-	case "$UEVENT" in
-		*Surface*Pro*[4-9]*|*Surface*Book*|*Surface*Laptop*[1~4]*|*Surface*Laptop*Studio*)
-			start iptsd_runner
+	case "$PRODUCT" in
+		*Surface*Pro*[4-9]*|*Surface*Book*|*Surface*Laptop*[1-4]*|*Surface*Laptop*Studio*)
+			set_property vendor.iptsd.device "$(iptsd-find-hidraw)"
+			;;
+	esac
+
+	# Handle a seperate case for Surface Pro 5 as it's initially being called
+	# Surface Pro LTE 2017, which gives "Surface Pro" in product_name
+	sku=$(cat /sys/class/dmi/id/product_sku 2>/dev/null)
+	case "$sku" in
+		Surface_Pro_1796|Surface_Pro_1807)
+			# Execute command with hidraw device from iptsd-find-hidraw
+			set_property vendor.iptsd.device "$(iptsd-find-hidraw)"
 			;;
 	esac
 }
@@ -872,32 +976,36 @@ function create_pointercal()
 		chmod 775 /data/misc/tscal
 		chmod 664 /data/misc/tscal/pointercal
 	fi
+
+	# setprop to tell the system to turn on TSCalibrartion
+	set_property ro.tscal.enable true 
 }
 
 function init_tscal()
 {
-	case "$UEVENT" in
-		*ST70416-6*)
-			modprobe gslx680_ts_acpi
-			;&
-		*T91*|*T101*|*ET2002*|*74499FU*|*945GSE-ITE8712*|*CF-19[CDYFGKLP]*|*TECLAST:rntPAD*)
-			create_pointercal
-			return
-			;;
-		*)
-			;;
-	esac
-
-	for usbts in $(lsusb | awk '{ print $6 }'); do
-		case "$usbts" in
-			0596:0001|0eef:0001|14e1:6000|14e1:5000)
+    if [ "$FORCE_TSCAL" -ge "1" ]; then
+        create_pointercal
+	else
+		case "$UEVENT" in
+			*T91*|*T101*|*ET2002*|*74499FU*|*945GSE-ITE8712*|*CF-19[CDYFGKLP]*|*TECLAST:rntPAD*)
 				create_pointercal
 				return
 				;;
 			*)
 				;;
 		esac
-	done
+
+		for usbts in $(lsusb | awk '{ print $6 }'); do
+			case "$usbts" in
+				0596:0001|0eef:0001|14e1:6000|14e1:5000)
+					create_pointercal
+					return
+					;;
+				*)
+					;;
+			esac
+		done
+    fi
 }
 
 function init_ril()
@@ -923,29 +1031,6 @@ function init_cpu_governor()
 			echo $governor > $cpu/cpufreq/scaling_governor || return 1
 		done
 	}
-}
-
-function set_lowmem()
-{
-	# 3GB size in kB : https://source.android.com/devices/tech/perf/low-ram
-	SIZE_3GB=3145728
-
-	mem_size=`cat /proc/meminfo | grep MemTotal | tr -s ' ' | cut -d ' ' -f 2`
-
-	if [ "$mem_size" -le "$SIZE_3GB" ]
-	then
-		setprop ro.config.low_ram ${FORCE_LOW_MEM:-true}
-	else
-		# Choose between low-memory vs high-performance device. 
-		# Default = false.
-		setprop ro.config.low_ram ${FORCE_LOW_MEM:-false}
-	fi
-
-	# Use free memory and file cache thresholds for making decisions 
-	# when to kill. This mode works the same way kernel lowmemorykiller 
-	# driver used to work. AOSP Default = false, Our default = true
-	setprop ro.lmk.use_minfree_levels ${FORCE_MINFREE_LEVELS:-true}
-	
 }
 
 function set_custom_ota()
@@ -990,24 +1075,6 @@ function set_storage_prefs()
 				;;
 		esac
 	done
-}
-
-function init_loop_links()
-{
-	mkdir -p /dev/block/by-name
-	for part in kernel initrd system; do
-		for suffix in _a _b; do
-			loop_device=$(losetup -a | grep "$part$suffix" | cut -d ":" -f1)
-			if [ ! -z "$loop_device" ]; then
-				ln -s $loop_device /dev/block/by-name/$part$suffix
-			fi
-		done
-	done
-	loop_device=$(losetup -a | grep misc | cut -d ":" -f1)
-	ln -s $loop_device /dev/block/by-name/misc
-
-	ln -s /dev/block/by-name/kernel_a /dev/block/by-name/boot_a
-	ln -s /dev/block/by-name/kernel_b /dev/block/by-name/boot_b
 }
 
 function init_prepare_ota()
@@ -1085,7 +1152,6 @@ function set_iio_options()
 function do_init()
 {
 	init_misc
-	set_lowmem
 	set_custom_timezone
 	init_hal_audio
 	set_custom_ota
@@ -1099,13 +1165,10 @@ function do_init()
 	init_hal_vulkan
 	init_hal_lights
 	init_hal_power
-	init_hal_thermal
 	init_hal_sensors
-	init_hal_surface
 	set_iio_options
 	init_tscal
 	init_ril
-	init_loop_links
 	init_prepare_ota
 	post_init
 }
@@ -1133,14 +1196,25 @@ function do_bootcomplete()
 			pm disable com.android.bluetooth
 			;;
 		X80*Power)
-			set_property power.nonboot-cpu-off 1
+			export POWER_NONBOOT_CPU_OFF=${POWER_NONBOOT_CPU_OFF:-1}
 			;;
 		*)
 			;;
 	esac
 
+    if [ "$POWER_NONBOOT_CPU_OFF" -ge 1 ]; then
+        set_property power.nonboot-cpu-off 1
+    fi
+
 	# initialize audio in bootcomplete
 	init_hal_audio_bootcomplete
+
+	# Turn off TSCalibration if property isn't set
+	if [ "$(getprop ro.tscal.enable)" == "true" ]; then
+		pm enable org.zeroxlab.util.tscal
+	else
+		pm disable org.zeroxlab.util.tscal
+	fi
 
 	# check wifi setup
 	FILE_CHECK=/data/misc/wifi/wpa_supplicant.conf
@@ -1176,16 +1250,19 @@ function do_bootcomplete()
 		pm disable org.lineageos.updater
 	fi
 
+	init_hal_thermal
+	init_hal_surface
 	post_bootcomplete
 }
 
-PATH=/sbin:/system/bin:/system/xbin
+PATH=/sbin:/system/bin:/system/xbin:/vendor/bin:/product/bin:/system_ext/bin:/system/vendor/bin:/system/product/bin:/system/system_ext/bin
 
 DMIPATH=/sys/class/dmi/id
 BOARD=$(cat $DMIPATH/board_name)
 PRODUCT=$(cat $DMIPATH/product_name)
 VENDOR=$(cat $DMIPATH/sys_vendor)
 UEVENT=$(cat $DMIPATH/uevent)
+GPU=$(readlink /sys/class/graphics/fb0/device/driver)
 
 # import cmdline variables
 for c in `cat /proc/cmdline`; do
@@ -1194,6 +1271,7 @@ for c in `cat /proc/cmdline`; do
 			;;
 		nomodeset)
 			HWACCEL=0
+			set_property mesa.libgl.always.software true
 			;;
 		*=*)
 			eval $c
@@ -1348,6 +1426,9 @@ case "$1" in
 		;;
 	bootcomplete)
 		do_bootcomplete
+		;;
+	kmsg)
+		dmesg -w > /data/kmsg.txt
 		;;
 	init|"")
 		do_init
